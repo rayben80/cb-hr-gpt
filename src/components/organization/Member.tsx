@@ -174,8 +174,8 @@ export const Member: React.FC<MemberProps> = memo(({
                     <MemberStatusBadge status={member.status} />
                 </div>
             </div>
-            <div className="table-cell align-middle w-32">
-                <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0 justify-end transition-opacity">
+            <div className="table-cell align-middle w-40 sm:w-44">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 flex-shrink-0 justify-end transition-opacity">
                     <button
                         onClick={handleMove}
                         className="flex items-center gap-1 text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 active:bg-slate-200 border border-slate-300 rounded-md px-2 py-1.5 sm:px-2.5 sm:py-1 transition-colors shadow-sm touch-manipulation"
