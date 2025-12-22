@@ -1,0 +1,395 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Inter', sans-serif; /* A nice default sans-serif font */
+}
+
+@supports (font-variation-settings: normal) {
+  body { font-family: 'Inter var', sans-serif; }
+}
+
+/* Custom scrollbar for a more modern look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9; /* slate-100 */
+}
+::-webkit-scrollbar-thumb {
+  background: #94a3b8; /* slate-400 */
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b; /* slate-500 */
+}
+
+/* Smooth transitions for interactive elements */
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Added for page transitions */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* 모바일 반응형 개선 */
+@layer utilities {
+  /* 터치 스크린을 위한 더 큰 터치 영역 */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 모바일에서 더 나은 가독성을 위한 폰트 크기 */
+  .mobile-text {
+    @apply text-base;
+  }
+  
+  @screen sm {
+    .mobile-text {
+      @apply text-sm;
+    }
+  }
+
+  /* 모바일 전용 간격 조정 */
+  .mobile-padding {
+    @apply px-4 py-3;
+  }
+  
+  @screen sm {
+    .mobile-padding {
+      @apply px-6 py-4;
+    }
+  }
+
+  /* 모바일에서 카드 그림자 최적화 */
+  .mobile-card {
+    @apply shadow-sm;
+  }
+  
+  @screen sm {
+    .mobile-card {
+      @apply shadow-md;
+    }
+  }
+
+  /* 모바일 버튼 스타일 */
+  .mobile-button {
+    @apply px-4 py-3 text-base font-medium rounded-lg touch-target;
+  }
+  
+  @screen sm {
+    .mobile-button {
+      @apply px-6 py-2 text-sm;
+    }
+  }
+
+  /* 드래그 앤 드롭 시각적 피드백 개선 */
+  .drag-preview {
+    @apply opacity-70 scale-95 transform;
+    transition: all 0.2s ease-out;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .drop-zone-active {
+    @apply bg-sky-50 border-sky-300 border-dashed;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .drop-zone-hover {
+    @apply bg-sky-100 border-sky-500;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 5px 15px rgba(14, 165, 233, 0.2);
+  }
+
+  /* 드래그 인디케이터 */
+  .drag-indicator {
+    @apply bg-sky-500;
+    height: 3px;
+    border-radius: 2px;
+    position: relative;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  
+  .drag-indicator::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: -3px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    @apply bg-sky-500;
+  }
+  
+  .drag-indicator::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: -3px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    @apply bg-sky-500;
+  }
+
+  /* 드래그 가이드 애니메이션 - 개선된 버전 */
+  .drag-guide {
+    animation: dragGuide 1.8s ease-in-out infinite;
+  }
+  
+  @keyframes dragGuide {
+    0%, 100% { 
+      transform: translateY(0) scale(1); 
+      opacity: 0.8; 
+    }
+    50% { 
+      transform: translateY(-5px) scale(1.08); 
+      opacity: 1; 
+    }
+  }
+
+  /* 드롭 영역 하이라이트 - 개선된 버전 */
+  .drop-zone-highlight {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+  
+  .drop-zone-highlight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.3), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* 드래그 중인 요소 애니메이션 */
+  .drag-item {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+    cursor: grab;
+  }
+  
+  .drag-item:active {
+    cursor: grabbing;
+  }
+  
+  .drag-item.dragging {
+    transform: rotate(2deg) scale(0.96);
+    z-index: 100;
+    box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* 드롭 존 펄스 애니메이션 */
+  .drop-zone-pulse {
+    animation: dropZonePulse 1.2s ease-in-out infinite;
+  }
+  
+  @keyframes dropZonePulse {
+    0%, 100% { 
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% { 
+      transform: scale(1.03);
+      opacity: 0.9;
+    }
+  }
+
+  /* 드롭 가능 영역 표시 */
+  .drop-target {
+    position: relative;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .drop-target::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px dashed #0ea5e9;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: none;
+  }
+  
+  .drop-target.active::after {
+    opacity: 1;
+  }
+
+  /* 모바일 최적화된 그리드 */
+  .mobile-grid {
+    @apply grid grid-cols-1 gap-4;
+  }
+  
+  @screen sm {
+    .mobile-grid {
+      @apply gap-6;
+    }
+  }
+  
+  @screen md {
+    .mobile-grid {
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+  }
+  
+  @screen lg {
+    .mobile-grid {
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+  }
+  
+  @screen xl {
+    .mobile-grid {
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 2.5rem;
+    }
+  }
+
+  /* 터치 친화적인 인터랙션 */
+  .touch-interaction {
+    @apply active:scale-95 transition-transform duration-150;
+  }
+
+  /* 스크롤 스냅 */
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+  }
+  
+  .scroll-snap-start {
+    scroll-snap-align: start;
+  }
+  
+  /* 커스텀 스크롤바 스타일 */
+  .scroll-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #f1f5f9;
+  }
+  
+  .scroll-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 4px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+  
+  /* 드래그 중 스크롤 컨테이너 스타일 */
+  .drag-scroll-container {
+    position: relative;
+  }
+  
+  .drag-scroll-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to bottom, rgba(14, 165, 233, 0.1), transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .drag-scroll-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to top, rgba(14, 165, 233, 0.1), transparent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .drag-scroll-container.drag-active::before,
+  .drag-scroll-container.drag-active::after {
+    opacity: 1;
+  }
+  
+  /* 스크롤 힌트 표시 */
+  .scroll-hint {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(14, 165, 233, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .scroll-hint.top {
+    top: 20px;
+  }
+  
+  .scroll-hint.bottom {
+    bottom: 20px;
+  }
+  
+  .scroll-hint.visible {
+    opacity: 1;
+  }
+}
+
+/* iOS Safari의 viewport 높이 이슈 해결 */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* 포커스 관리 (접근성 개선) */
+.focus-visible:focus-visible {
+  @apply outline-none ring-2 ring-sky-500 ring-offset-2;
+}
+
+/* 다크 모드 준비 (미래 확장성) */
+@media (prefers-color-scheme: dark) {
+  /* 추후 다크 모드 지원 시 여기에 스타일 추가 */
+}

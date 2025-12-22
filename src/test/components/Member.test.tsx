@@ -1,0 +1,247 @@
+/**
+ * Member 컴포넌트 테스트
+ * 멤버 카드 컴포넌트의 렌더링 및 상호작용 검증
+ */
+
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { Member } from '../../components/organization/Member';
+import { Member as MemberType } from '../../constants';
+
+// Mock dependencies
+vi.mock('../../components/common', () => ({
+  Icon: ({ path, className }: { path: string; className: string }) => 
+    <div data-testid="icon" data-path={path} className={className} />
+}));
+
+describe('Member Component', () => {
+  const mockMember: MemberType = {
+    id: 'member1',
+    name: '김개발',
+    role: '주임',
+    status: 'active',
+    email: 'kim@example.com',
+    hireDate: '2023-01-01',
+    avatar: '/avatar1.jpg'
+  };
+
+  const defaultProps = {
+    member: mockMember,
+    onEdit: vi.fn(),
+    onDelete: vi.fn(),
+    baseDate: '2024-01-01',
+    isDragging: false,
+    onDragStart: vi.fn(),
+    onDragEnd: vi.fn()
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('멤버 기본 정보를 올바르게 렌더링해야 한다', () => {
+    render(<Member {...defaultProps} />);
+
+    expect(screen.getByText('김개발')).toBeInTheDocument();
+    expect(screen.getByText('주임')).toBeInTheDocument();
+    expect(screen.getByText('2023-01-01')).toBeInTheDocument();
+    expect(screen.getByTitle('kim@example.com')).toBeInTheDocument();
+  });
+
+  it('멤버 아바타를 올바르게 렌더링해야 한다', () => {
+    render(<Member {...defaultProps} />);
+
+    const avatar = screen.getByRole('img', { name: '김개발 avatar' });
+    expect(avatar).toBeInTheDocument();
+    expect(avatar).toHaveAttribute('src', '/avatar1.jpg');
+  });
+
+  it('수정 버튼을 클릭하면 onEdit이 호출되어야 한다', () => {
+    render(<Member {...defaultProps} />);
+
+    const editButton = screen.getByLabelText('김개발님 정보 수정');
+    fireEvent.click(editButton);
+
+    expect(defaultProps.onEdit).toHaveBeenCalledWith(mockMember);
+  });
+
+  it('삭제 버튼을 클릭하면 onDelete가 호출되어야 한다', () => {
+    render(<Member {...defaultProps} />);
+
+    const deleteButton = screen.getByLabelText('김개발님 퇴사 처리');
+    fireEvent.click(deleteButton);
+
+    expect(defaultProps.onDelete).toHaveBeenCalledWith(mockMember);
+  });
+
+  it('active 상태일 때 상태 배지가 렌더링되지 않아야 한다', () => {
+    render(<Member {...defaultProps} />);
+
+    expect(screen.queryByText('활성')).not.toBeInTheDocument();
+  });
+
+  it('on_leave 상태일 때 휴직중 배지가 렌더링되어야 한다', () => {
+    const memberOnLeave = { ...mockMember, status: 'on_leave' as const };
+    render(<Member {...defaultProps} member={memberOnLeave} />);
+
+    // 모바일과 데스크톱에서 모두 렌더링되므로 getAllByText 사용
+    const badges = screen.getAllByText('휴직중');
+    expect(badges.length).toBeGreaterThan(0);
+  });
+
+  it('resigned 상태일 때 퇴사 배지가 렌더링되어야 한다', () => {
+    const resignedMember = { ...mockMember, status: 'resigned' as const };
+    render(<Member {...defaultProps} member={resignedMember} />);
+
+    const badges = screen.getAllByText('퇴사');
+    expect(badges.length).toBeGreaterThan(0);
+  });
+
+  it('intern 상태일 때 인턴 배지가 렌더링되어야 한다', () => {
+    const internMember = { ...mockMember, status: 'intern' as const };
+    render(<Member {...defaultProps} member={internMember} />);
+
+    // 모바일과 데스크톱에서 모두 렌더링되므로 getAllByText 사용
+    const badges = screen.getAllByText('인턴');
+    expect(badges.length).toBeGreaterThan(0);
+  });
+
+  it('재직 기간을 올바르게 계산하여 표시해야 한다', () => {
+    render(<Member {...defaultProps} />);
+
+    // 2023-01-01부터 2024-01-01까지는 1년 1일 (실제 계산 로직에 따라)
+    expect(screen.getByText(/\(1년 1일\)/)).toBeInTheDocument();
+  });
+
+  it('드래그 앤 드롭을 위한 속성들이 설정되어야 한다', () => {
+    const { container } = render(<Member {...defaultProps} />);
+    
+    const memberElement = container.querySelector('.drag-item');
+    expect(memberElement).toHaveAttribute('draggable', 'true');
+  });
+
+  it('드래그 시작 시 올바른 데이터가 설정되어야 한다', () => {
+    const mockDataTransfer = {
+      setData: vi.fn(),
+      effectAllowed: '',
+      setDragImage: vi.fn()
+    };
+
+    render(<Member {...defaultProps} />);
+
+    const memberElement = screen.getByText('김개발').closest('.drag-item');
+    expect(memberElement).not.toBeNull();
+
+    // DragEvent 이벤트 객체 생성
+    const dragEvent = new Event('dragstart', { bubbles: true });
+    Object.defineProperty(dragEvent, 'dataTransfer', {
+      value: mockDataTransfer,
+      writable: false
+    });
+
+    // 드래그 이벤트 디스패치
+    memberElement!.dispatchEvent(dragEvent);
+
+    expect(mockDataTransfer.setData).toHaveBeenCalledWith('memberId', 'member1');
+    expect(defaultProps.onDragStart).toHaveBeenCalledWith(mockMember);
+  });
+
+  it('드래그 끝날 때 onDragEnd가 호출되어야 한다', () => {
+    const { container } = render(<Member {...defaultProps} />);
+
+    const memberElement = container.querySelector('.drag-item');
+    expect(memberElement).not.toBeNull();
+    
+    // DragEvent 이벤트 객체 생성
+    const dragEndEvent = new Event('dragend', { bubbles: true });
+    
+    // 드래그 끝 이벤트 디스패치
+    memberElement!.dispatchEvent(dragEndEvent);
+
+    expect(defaultProps.onDragEnd).toHaveBeenCalled();
+  });
+
+  it('isDragging 상태일 때 시각적 스타일이 적용되어야 한다', () => {
+    const propsWithDragging = { ...defaultProps, isDragging: true };
+    const { container } = render(<Member {...propsWithDragging} />);
+
+    const memberElement = container.querySelector('.drag-item');
+    expect(memberElement).toHaveClass('dragging', 'opacity-50', 'scale-95');
+  });
+
+  it('드래그 핸들 아이콘이 렌더링되어야 한다', () => {
+    render(<Member {...defaultProps} />);
+
+    const gripIcons = screen.getAllByTestId('icon');
+    const gripVerticalIcon = gripIcons.find(icon => 
+      icon.getAttribute('data-path') === 'M9 3.75H6.75a.75.75 0 110-1.5h2.25a.75.75 0 110 1.5zM9 12.75H6.75a.75.75 0 110-1.5h2.25a.75.75 0 110 1.5zM9 21.75H6.75a.75.75 0 110-1.5h2.25a.75.75 0 110 1.5zM17.25 3.75h-2.25a.75.75 0 110-1.5h2.25a.75.75 0 110 1.5zM17.25 12.75h-2.25a.75.75 0 110-1.5h2.25a.75.75 0 110 1.5zM17.25 21.75h-2.25a.75.75 0 110-1.5h2.25a.75.75 0 110 1.5z'
+    );
+    
+    expect(gripVerticalIcon).toBeDefined();
+    expect(gripVerticalIcon).not.toBeNull();
+  });
+
+  it('이메일이 없을 때도 오류없이 렌더링되어야 한다', () => {
+    const memberWithoutEmail = { ...mockMember, email: undefined };
+    const { container } = render(<Member {...defaultProps} member={memberWithoutEmail} />);
+
+    // 이름이 렌더링되는지 확인
+    expect(container.textContent).toContain('김개발');
+    // title 속성을 가진 어떤 요소도 없어야 함
+    const emailElements = container.querySelectorAll('[title*="email"]');
+    expect(emailElements.length).toBe(0);
+  });
+
+  it('입사일이 없을 때 재직 기간이 표시되지 않아야 한다', () => {
+    const memberWithoutHireDate = { ...mockMember, hireDate: '' };
+    const { container } = render(<Member {...defaultProps} member={memberWithoutHireDate} />);
+
+    // 괄호로 둘러싸인 날짜 정보가 없어야 함
+    const durationText = container.textContent;
+    expect(durationText).not.toMatch(/\(/); // 괄호가 없어야 함
+  });
+
+  it('잘못된 입사일 형식일 때 오류없이 처리되어야 한다', () => {
+    const memberWithInvalidDate = { ...mockMember, hireDate: 'invalid-date' };
+    
+    expect(() => {
+      render(<Member {...defaultProps} member={memberWithInvalidDate} />);
+    }).not.toThrow();
+  });
+
+  it('accessibility 요구사항을 만족해야 한다', () => {
+    const { container } = render(<Member {...defaultProps} />);
+
+    // 버튼들이 적절한 aria-label을 가져야 함
+    const editButton = container.querySelector('[aria-label="김개발님 정보 수정"]');
+    const deleteButton = container.querySelector('[aria-label="김개발님 퇴사 처리"]');
+    
+    expect(editButton).toBeInTheDocument();
+    expect(deleteButton).toBeInTheDocument();
+
+    // 이미지가 적절한 alt 텍스트를 가져야 함
+    const avatar = container.querySelector('img[alt="김개발 avatar"]');
+    expect(avatar).toBeInTheDocument();
+  });
+
+  it('onDragStart와 onDragEnd가 undefined일 때도 오류없이 동작해야 한다', () => {
+    const propsWithoutDragHandlers = {
+      ...defaultProps,
+      onDragStart: undefined,
+      onDragEnd: undefined
+    };
+
+    expect(() => {
+      render(<Member {...propsWithoutDragHandlers} />);
+    }).not.toThrow();
+
+    // 드래그 이벤트는 간단하게 테스트 (실제 드래그 동작은 생략)
+    const memberElements = screen.getAllByText('김개발');
+    const memberElement = memberElements[0].closest('.drag-item');
+    expect(memberElement).toBeInTheDocument();
+  });
+});
