@@ -42,7 +42,7 @@ const OrganizationManagement = memo(() => {
     const [headquarterToEdit, setHeadquarterToEdit] = useState<Headquarter | null>(null);
     
     // 커스텀 스크롤 관련 상태
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLElement | null>(null);
     const scrollTimerRef = useRef<number | null>(null);
     const isAutoScrolling = useRef(false);
     const scrollDirection = useRef<'up' | 'down' | null>(null);
@@ -403,6 +403,22 @@ const OrganizationManagement = memo(() => {
     }, [stopAutoScroll]);
 
     useEffect(() => {
+        if (scrollContainerRef.current) {
+            return;
+        }
+
+        const mainElement = document.querySelector('main');
+        if (mainElement) {
+            scrollContainerRef.current = mainElement as HTMLElement;
+            return;
+        }
+
+        if (document.scrollingElement) {
+            scrollContainerRef.current = document.scrollingElement as HTMLElement;
+        }
+    }, []);
+
+    useEffect(() => {
         const handleDragStart = () => {
             isDraggingRef.current = true;
         };
@@ -580,9 +596,7 @@ const OrganizationManagement = memo(() => {
             </div>
 
             <div 
-                className="space-y-8 scroll-container" 
-                ref={scrollContainerRef} 
-                style={{ maxHeight: 'calc(100vh - 200px)' }}
+                className="space-y-8" 
                 onDragOver={handleContainerDragOver}
                 onDrop={handleContainerDrop}
             >
