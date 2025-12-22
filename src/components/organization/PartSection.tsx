@@ -72,15 +72,19 @@ export const PartSection: React.FC<PartSectionProps> = memo(({
 
     return (
         <div className="transition-all">
-            <div 
-                className="flex items-center justify-between p-2 sm:p-3 rounded-lg cursor-pointer hover:bg-slate-50 active:bg-slate-100 touch-manipulation"
-                onClick={toggleOpen}
-            >
+            <div className="flex items-center justify-between p-2 sm:p-3 rounded-lg">
                 <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                    <Icon path={isOpen ? ICONS.chevronUp : ICONS.chevronDown} className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 transition-transform flex-shrink-0" />
                     <h3 className="font-semibold text-slate-700 text-sm sm:text-base truncate">{part.title} ({memberCountText}명)</h3>
                 </div>
                 <div className="flex items-center flex-shrink-0">
+                    <button
+                        type="button"
+                        onClick={toggleOpen}
+                        aria-label={isOpen ? '파트 접기' : '파트 펼치기'}
+                        className="p-1.5 sm:p-2 rounded-full text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors touch-manipulation"
+                    >
+                        <Icon path={isOpen ? ICONS.chevronUp : ICONS.chevronDown} className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
                     <Dropdown trigger={
                         <button className="p-1.5 sm:p-2 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors touch-manipulation">
                             <Icon path={ICONS.moreHorizontal} className="w-4 h-4 sm:w-5 sm:h-5" />

@@ -120,9 +120,9 @@ describe('PartSection Component', () => {
     // 초기에는 열려있어야 함
     expect(screen.getByText('김개발')).toBeInTheDocument();
 
-    // 헤더 클릭으로 접기
-    const header = screen.getByText('프론트엔드 (2명)').closest('div');
-    fireEvent.click(header!);
+    // 토글 버튼으로 접기
+    const toggleButton = screen.getByLabelText('파트 접기');
+    fireEvent.click(toggleButton);
 
     // 멤버가 보이지 않아야 함
     expect(screen.queryByText('김개발')).not.toBeInTheDocument();
@@ -291,9 +291,9 @@ describe('PartSection Component', () => {
     );
     expect(chevronIcon).toBeDefined();
 
-    // 헤더 클릭으로 접기
-    const header = screen.getByText('프론트엔드 (2명)').closest('div');
-    fireEvent.click(header!);
+    // 토글 버튼으로 접기
+    const toggleButton = screen.getByLabelText('파트 접기');
+    fireEvent.click(toggleButton);
 
     // chevronDown 아이콘으로 변경되어야 함
     chevronIcons = screen.getAllByTestId('icon');
@@ -306,9 +306,9 @@ describe('PartSection Component', () => {
   it('accessibility 요구사항을 만족해야 한다', () => {
     render(<PartSection {...defaultProps} />);
 
-    // 헤더가 클릭 가능한 요소여야 함
-    const header = screen.getByText('프론트엔드 (2명)').closest('[onClick]');
-    expect(header).toBeDefined();
+    // 토글 버튼이 있어야 함
+    const toggleButton = screen.getByRole('button', { name: '파트 접기' });
+    expect(toggleButton).toBeInTheDocument();
 
     // 드롭다운 버튼이 있어야 함
     const dropdownTrigger = screen.getByTestId('dropdown');
