@@ -347,34 +347,6 @@ body {
     opacity: 1;
   }
   
-  /* 스크롤 힌트 표시 */
-  .scroll-hint {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(14, 165, 233, 0.8);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    z-index: 100;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-  
-  .scroll-hint.top {
-    top: 20px;
-  }
-  
-  .scroll-hint.bottom {
-    bottom: 20px;
-  }
-  
-  .scroll-hint.visible {
-    opacity: 1;
-  }
 }
 
 /* iOS Safari의 viewport 높이 이슈 해결 */

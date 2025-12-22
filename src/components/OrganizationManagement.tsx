@@ -43,8 +43,6 @@ const OrganizationManagement = memo(() => {
     
     // 커스텀 스크롤 관련 상태
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const topScrollHintRef = useRef<HTMLDivElement>(null);
-    const bottomScrollHintRef = useRef<HTMLDivElement>(null);
     const scrollTimerRef = useRef<number | null>(null);
     const isAutoScrolling = useRef(false);
     const scrollDirection = useRef<'up' | 'down' | null>(null);
@@ -301,39 +299,10 @@ const OrganizationManagement = memo(() => {
 
     // 커스텀 자동 스크롤 로직
     useEffect(() => {
-        const showScrollHints = () => {
-            if (!scrollContainerRef.current || !topScrollHintRef.current || !bottomScrollHintRef.current) return;
-            
-            const container = scrollContainerRef.current;
-            const topHint = topScrollHintRef.current;
-            const bottomHint = bottomScrollHintRef.current;
-            
-            // 스크롤이 가능한 경우에만 힌트 표시
-            if (container.scrollTop > 0) {
-                topHint.classList.add('visible');
-            } else {
-                topHint.classList.remove('visible');
-            }
-            
-            if (container.scrollTop < container.scrollHeight - container.clientHeight) {
-                bottomHint.classList.add('visible');
-            } else {
-                bottomHint.classList.remove('visible');
-            }
-        };
-        
-        // 스크롤 이벤트 리스너 추가
         const container = scrollContainerRef.current;
-        if (container) {
-            container.addEventListener('scroll', showScrollHints);
-            // 초기 상태 확인
-            showScrollHints();
-        }
-        
+        if (!container) return;
+
         return () => {
-            if (container) {
-                container.removeEventListener('scroll', showScrollHints);
-            }
             if (scrollTimerRef.current !== null) {
                 cancelAnimationFrame(scrollTimerRef.current);
                 scrollTimerRef.current = null;
@@ -610,14 +579,6 @@ const OrganizationManagement = memo(() => {
                 </nav>
             </div>
 
-            {/* 스크롤 힌트 */}
-            <div ref={topScrollHintRef} className="scroll-hint top">
-                위로 스크롤하여 더 많은 팀 보기
-            </div>
-            <div ref={bottomScrollHintRef} className="scroll-hint bottom">
-                아래로 스크롤하여 더 많은 팀 보기
-            </div>
-            
             <div 
                 className="space-y-8 scroll-container" 
                 ref={scrollContainerRef} 
