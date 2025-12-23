@@ -150,16 +150,14 @@ export const Member: React.FC<MemberProps> = memo(({
                         <p className="font-semibold text-slate-800 text-xs sm:text-sm truncate">{member.name}</p>
                         <div className="flex items-center flex-wrap gap-1 min-w-0">
                             <span className="text-xs text-slate-500 truncate">{member.role}</span>
-                            {member.hireDate && <span className="text-slate-400">·</span>}
-                            {member.hireDate && (
-                              <span className="text-xs text-slate-500" title={member.hireDate}>
-                                {member.hireDate}
+                            {duration && (
+                              <span className="text-slate-400 font-normal text-xs whitespace-nowrap" title={member.hireDate || undefined}>
+                                {duration}
                               </span>
                             )}
-                            {duration && <span className="text-slate-400 font-normal text-xs whitespace-nowrap">{duration}</span>}
                         </div>
                         {member.email && (
-                            <p className="text-xs text-slate-500 truncate mt-0.5 hidden sm:block" title={member.email}>
+                            <p className="text-xs text-slate-500 truncate mt-0.5 hidden md:block" title={member.email}>
                                 {member.email}
                             </p>
                         )}

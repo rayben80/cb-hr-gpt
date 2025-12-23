@@ -16,6 +16,7 @@ interface TeamCardProps {
     onDeleteTeam: (teamId: string) => void;
     onMoveMember: (member: Member) => void;
     searchTerm: string;
+    isFiltered?: boolean;
     baseDate: string;
 }
 
@@ -32,6 +33,7 @@ export const TeamCard: React.FC<TeamCardProps> = memo(({
     onDeleteTeam, 
     onMoveMember,
     searchTerm, 
+    isFiltered = false,
     baseDate
 }) => {
     // 디버깅 로그 추가
@@ -44,14 +46,16 @@ export const TeamCard: React.FC<TeamCardProps> = memo(({
     const { memberCountText, isTeamEmpty, shouldRender } = useMemo(() => {
         const filtered = team.parts.reduce((sum, part) => sum + part.members.length, 0);
         const original = team.originalTotalMemberCount || 0;
-        const countText = searchTerm ? `${filtered} / ${original}` : original.toString();
+        const isFiltering = Boolean(searchTerm) || isFiltered;
+        const countText = isFiltering ? `${filtered} / ${original}` : original.toString();
         const isEmpty = original === 0;
-        const shouldShow = searchTerm ? filtered > 0 : team.parts.length > 0;
+        const shouldShow = isFiltering ? filtered > 0 : team.parts.length > 0;
         
         console.log('TeamCard render conditions:', {
             teamId: team.id,
             teamName: team.name,
             searchTerm,
+            isFiltered,
             filteredMembers: filtered,
             originalMembers: original,
             partsCount: team.parts.length,
@@ -63,7 +67,7 @@ export const TeamCard: React.FC<TeamCardProps> = memo(({
             isTeamEmpty: isEmpty,
             shouldRender: shouldShow
         };
-    }, [team.parts, team.originalTotalMemberCount, searchTerm]);
+    }, [team.parts, team.originalTotalMemberCount, searchTerm, isFiltered]);
 
     // 최적화: 콜백 함수들을 메모이제이션
     const handleEditTeam = useCallback(() => onEditTeam(team), [onEditTeam, team]);

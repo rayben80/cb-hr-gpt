@@ -7,6 +7,11 @@ import { useError } from '../contexts/ErrorContext';
 /**
  * 멤버 관리 로직을 처리하는 커스텀 훅
  */
+interface SaveMemberOptions {
+    keepOpen?: boolean;
+    onSuccess?: () => void;
+}
+
 export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => void) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<MemberType | null>(null);
@@ -44,7 +49,11 @@ export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => 
     }, [teams]);
 
     // 멤버 저장 로직
-    const handleSaveMember = useCallback(async (data: MemberType & { teamId: string; partId: string }, isEditing: boolean) => {
+    const handleSaveMember = useCallback(async (
+        data: MemberType & { teamId: string; partId: string },
+        isEditing: boolean,
+        options?: SaveMemberOptions
+    ) => {
         const { teamId, partId, ...memberData } = data;
         
         await saveOperationActions.execute(async () => {
@@ -173,9 +182,14 @@ export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => 
             successMessage: isEditing ? '멤버 정보가 성공적으로 업데이트되었습니다.' : '새 멤버가 성공적으로 추가되었습니다.',
             errorMessage: `멤버 ${isEditing ? '수정' : '추가'} 중 오류가 발생했습니다.`,
             onSuccess: () => {
-                setIsModalOpen(false);
-                setEditingMember(null);
-                setModalContext(null);
+                if (!options?.keepOpen) {
+                    setIsModalOpen(false);
+                    setEditingMember(null);
+                    setModalContext(null);
+                } else {
+                    setEditingMember(null);
+                }
+                options?.onSuccess?.();
             }
         });
     }, [saveOperationActions, findMemberLocation, teams, setTeams]);

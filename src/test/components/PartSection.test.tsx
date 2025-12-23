@@ -135,16 +135,12 @@ describe('PartSection Component', () => {
     expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
   });
 
-  it('멤버 추가 메뉴 항목을 클릭하면 onAddMember가 호출되어야 한다', () => {
+  it('파트 헤더의 멤버 추가 버튼을 클릭하면 onAddMember가 호출되어야 한다', () => {
     render(<PartSection {...defaultProps} />);
 
-    const dropdownItems = screen.getAllByTestId('dropdown-item');
-    const addMemberItem = dropdownItems.find(item => 
-      item.textContent?.includes('멤버 추가')
-    );
-
-    expect(addMemberItem).toBeDefined();
-    fireEvent.click(addMemberItem!);
+    const addButton = screen.getByText('멤버 추가').closest('button');
+    expect(addButton).toBeInTheDocument();
+    fireEvent.click(addButton!);
 
     expect(defaultProps.onAddMember).toHaveBeenCalledWith('team1', 'part1');
   });

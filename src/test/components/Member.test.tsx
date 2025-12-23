@@ -48,7 +48,6 @@ describe('Member Component', () => {
 
     expect(screen.getByText('김개발')).toBeInTheDocument();
     expect(screen.getByText('주임')).toBeInTheDocument();
-    expect(screen.getByText('2023-01-01')).toBeInTheDocument();
     expect(screen.getByTitle('kim@example.com')).toBeInTheDocument();
   });
 

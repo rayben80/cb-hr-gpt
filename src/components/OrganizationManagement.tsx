@@ -28,6 +28,7 @@ const OrganizationManagement = memo(() => {
     const [searchTerm, setSearchTerm] = useState('');
     const [baseDate, setBaseDate] = useState(new Date().toISOString().split('T')[0]);
     const [activeTab, setActiveTab] = useState('orgChart');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'intern' | 'on_leave' | 'resigned'>('all');
     
     // 멤버 이동 모달 관련 상태
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
@@ -77,6 +78,7 @@ const OrganizationManagement = memo(() => {
         handleReinstateMember,
         handleSaveMember
     } = useMemberManagement(teams, setTeams);
+
     
     // 멤버를 특정 팀/파트로 이동하는 함수
     const moveMemberToTeamPart = useCallback((memberId: string, targetTeamId: string, targetPartId: string) => {
@@ -155,6 +157,7 @@ const OrganizationManagement = memo(() => {
         moveMemberToTeamPart(memberId, targetTeamId, targetPartId);
         closeMoveModal();
     }, [moveMemberToTeamPart, closeMoveModal]);
+
 
     const openHeadquarterModal = useCallback((hq: Headquarter) => {
         setHeadquarterToEdit(hq);
@@ -239,6 +242,7 @@ const OrganizationManagement = memo(() => {
             }}
             onMoveMember={openMoveModal}
             searchTerm={searchTerm}
+            isFiltered={statusFilter === 'active' || statusFilter === 'intern'}
         />
     ), [
         baseDate,
@@ -252,14 +256,34 @@ const OrganizationManagement = memo(() => {
         handleDeleteTeam,
         openMoveModal,
         searchTerm,
+        statusFilter,
     ]);
 
     const defaultHeadquarterId = headquarters[0]?.id ?? HQ_UNASSIGNED_ID;
 
+    const visibleActiveTeams = useMemo(() => {
+        if (statusFilter !== 'active' && statusFilter !== 'intern') {
+            return activeTeams;
+        }
+
+        return activeTeams
+            .map(team => {
+                const filteredParts = team.parts
+                    .map(part => ({
+                        ...part,
+                        members: part.members.filter(member => member.status === statusFilter),
+                    }))
+                    .filter(part => part.members.length > 0);
+
+                return { ...team, parts: filteredParts };
+            })
+            .filter(team => team.parts.length > 0);
+    }, [activeTeams, statusFilter]);
+
     const groupedHeadquarters = useMemo(() => {
         const assignedTeamIds = new Set<string>();
         const sections = headquarters.map((hq) => {
-            const teamsInHeadquarter = activeTeams.filter((team) => {
+            const teamsInHeadquarter = visibleActiveTeams.filter((team) => {
                 const teamHeadquarterId = team.headquarterId ?? defaultHeadquarterId;
                 const belongsToHeadquarter = teamHeadquarterId === hq.id;
                 if (belongsToHeadquarter) {
@@ -269,9 +293,9 @@ const OrganizationManagement = memo(() => {
             });
             return { headquarter: hq, teams: teamsInHeadquarter };
         });
-        const unassignedTeams = activeTeams.filter(team => !assignedTeamIds.has(team.id));
+        const unassignedTeams = visibleActiveTeams.filter(team => !assignedTeamIds.has(team.id));
         return { sections, unassignedTeams };
-    }, [headquarters, activeTeams, defaultHeadquarterId]);
+    }, [headquarters, visibleActiveTeams, defaultHeadquarterId]);
 
     const hasAnyTeamsInView = useMemo(
         () => groupedHeadquarters.sections.some(section => section.teams.length > 0) || groupedHeadquarters.unassignedTeams.length > 0,
@@ -291,6 +315,38 @@ const OrganizationManagement = memo(() => {
         { id: 'orgChart', label: '조직도' },
         { id: 'inactive', label: `비활성 인원 (${filteredInactiveMembers.onLeave.length + filteredInactiveMembers.resigned.length})` }
     ];
+
+    const inactiveMembersToShow = useMemo(() => {
+        if (statusFilter === 'on_leave') {
+            return { onLeave: filteredInactiveMembers.onLeave, resigned: [] as typeof filteredInactiveMembers.resigned };
+        }
+        if (statusFilter === 'resigned') {
+            return { onLeave: [] as typeof filteredInactiveMembers.onLeave, resigned: filteredInactiveMembers.resigned };
+        }
+        return filteredInactiveMembers;
+    }, [filteredInactiveMembers, statusFilter]);
+
+    const handleStatusFilter = useCallback((nextFilter: typeof statusFilter) => {
+        setStatusFilter(prev => {
+            const resolved = prev === nextFilter ? 'all' : nextFilter;
+            if (resolved === 'on_leave' || resolved === 'resigned') {
+                setActiveTab('inactive');
+            } else {
+                setActiveTab('orgChart');
+            }
+            return resolved;
+        });
+    }, []);
+
+    const handleTabChange = useCallback((tabId: string) => {
+        setActiveTab(tabId);
+        if (tabId === 'orgChart' && (statusFilter === 'on_leave' || statusFilter === 'resigned')) {
+            setStatusFilter('all');
+        }
+        if (tabId === 'inactive' && (statusFilter === 'active' || statusFilter === 'intern')) {
+            setStatusFilter('all');
+        }
+    }, [statusFilter]);
 
     // 커스텀 자동 스크롤 로직
     useEffect(() => {
@@ -472,11 +528,46 @@ const OrganizationManagement = memo(() => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
-                <OrgStatCard icon={ICONS.users} title="전체 인원" value={stats.total} iconBgColor="bg-slate-500" />
-                <OrgStatCard icon={ICONS.userCheck} title="재직" value={stats.active} iconBgColor="bg-green-500" />
-                <OrgStatCard icon={ICONS.userGraduate} title="인턴" value={stats.intern} iconBgColor="bg-purple-500" />
-                <OrgStatCard icon={ICONS.userPause} title="휴직" value={stats.onLeave} iconBgColor="bg-amber-500" />
-                <OrgStatCard icon={ICONS.userExit} title="퇴사" value={stats.resigned} iconBgColor="bg-gray-400" />
+                <OrgStatCard
+                    icon={ICONS.users}
+                    title="전체 인원"
+                    value={stats.total}
+                    iconBgColor="bg-slate-500"
+                    isActive={statusFilter === 'all'}
+                    onClick={() => handleStatusFilter('all')}
+                />
+                <OrgStatCard
+                    icon={ICONS.userCheck}
+                    title="재직"
+                    value={stats.active}
+                    iconBgColor="bg-green-500"
+                    isActive={statusFilter === 'active'}
+                    onClick={() => handleStatusFilter('active')}
+                />
+                <OrgStatCard
+                    icon={ICONS.userGraduate}
+                    title="인턴"
+                    value={stats.intern}
+                    iconBgColor="bg-purple-500"
+                    isActive={statusFilter === 'intern'}
+                    onClick={() => handleStatusFilter('intern')}
+                />
+                <OrgStatCard
+                    icon={ICONS.userPause}
+                    title="휴직"
+                    value={stats.onLeave}
+                    iconBgColor="bg-amber-500"
+                    isActive={statusFilter === 'on_leave'}
+                    onClick={() => handleStatusFilter('on_leave')}
+                />
+                <OrgStatCard
+                    icon={ICONS.userExit}
+                    title="퇴사"
+                    value={stats.resigned}
+                    iconBgColor="bg-gray-400"
+                    isActive={statusFilter === 'resigned'}
+                    onClick={() => handleStatusFilter('resigned')}
+                />
             </div>
 
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm mb-6">
@@ -530,7 +621,7 @@ const OrganizationManagement = memo(() => {
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => handleTabChange(tab.id)}
                             className={`${
                                 activeTab === tab.id
                                     ? 'border-sky-500 text-sky-600'
@@ -668,7 +759,7 @@ const OrganizationManagement = memo(() => {
                                 <InactiveMemberList 
                                     title="휴직중인 인원" 
                                     type="on_leave" 
-                                    members={filteredInactiveMembers.onLeave} 
+                                    members={inactiveMembersToShow.onLeave} 
                                     onReinstate={handleReinstateMember} 
                                     onDelete={() => {}} 
                                     baseDate={baseDate} 
@@ -676,7 +767,7 @@ const OrganizationManagement = memo(() => {
                                 <InactiveMemberList 
                                     title="퇴사한 인원" 
                                     type="resigned" 
-                                    members={filteredInactiveMembers.resigned} 
+                                    members={inactiveMembersToShow.resigned} 
                                     onDelete={handleDeleteResignedMember} 
                                     onReinstate={() => {}} 
                                     baseDate={baseDate} 

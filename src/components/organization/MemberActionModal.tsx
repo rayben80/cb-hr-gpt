@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import { Icon, InputField } from '../common';
+import { Icon, InputField, Checkbox } from '../common';
 import { ModalActions } from '../common/Button';
 import { ICONS, Member, Team } from '../../constants';
 import { ConfirmationModal } from '../ConfirmationModal';
@@ -7,7 +7,11 @@ import { ConfirmationModal } from '../ConfirmationModal';
 interface MemberActionModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: Member & { teamId: string; partId: string }, isEditing: boolean) => void;
+    onSave: (
+        data: Member & { teamId: string; partId: string },
+        isEditing: boolean,
+        options?: { keepOpen?: boolean; onSuccess?: () => void }
+    ) => void;
     teams: Team[];
     memberData: Member | null;
     context: { teamId: string, partId: string } | null;
@@ -28,6 +32,7 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
     const [displayEmail, setDisplayEmail] = useState('');
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [initialFormData, setInitialFormData] = useState({...formData});
+    const [keepAdding, setKeepAdding] = useState(false);
 
     // ESC 키로 모달 닫기
     useEffect(() => {
@@ -93,6 +98,7 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
                 setInitialFormData({...newFormData});
                 setDisplayEmail('');
             }
+            setKeepAdding(false);
         }
     }, [memberData, context, isOpen, teams]);
 
@@ -137,9 +143,34 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
             submissionData.id = `mem_${Date.now()}`;
             submissionData.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(submissionData.name)}&background=random&color=fff`;
         }
-        onSave(submissionData as Member & { teamId: string; partId: string }, !!memberData);
-        setInitialFormData({...formData});
-        onClose();
+        const shouldKeepOpen = !memberData && keepAdding;
+        onSave(
+            submissionData as Member & { teamId: string; partId: string },
+            !!memberData,
+            {
+                keepOpen: shouldKeepOpen,
+                onSuccess: () => {
+                    if (shouldKeepOpen) {
+                        const resetData = {
+                            id: '',
+                            name: '',
+                            role: '',
+                            avatar: '',
+                            hireDate: '',
+                            email: '',
+                            status: 'active' as Member['status'],
+                            teamId: formData.teamId,
+                            partId: formData.partId,
+                        };
+                        setFormData(resetData);
+                        setInitialFormData({ ...resetData });
+                        setDisplayEmail('');
+                    } else {
+                        setInitialFormData({ ...formData });
+                    }
+                }
+            }
+        );
     };
     
     const availableParts = teams.find(t => t.id === formData.teamId)?.parts || [];
@@ -220,6 +251,16 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
                                     <option value="resigned">퇴사</option>
                                 </select>
                             </div>
+                            {!memberData && (
+                                <label className="flex items-center gap-2 text-sm text-slate-600">
+                                    <Checkbox
+                                        checked={keepAdding}
+                                        indeterminate={false}
+                                        onChange={(e) => setKeepAdding(e.target.checked)}
+                                    />
+                                    저장 후 계속 추가
+                                </label>
+                            )}
                         </div>
                         <div className="p-6 bg-slate-50 border-t border-slate-200">
                             <ModalActions
