@@ -52,8 +52,12 @@ export const mockTeam: Team = {
 export const mockEvaluationTemplate: EvaluationTemplate = {
   id: 'test-template-1',
   name: '테스트 평가 템플릿',
-  type: '본인평가',
+  type: '역량 평가',
   category: '공통',
+  tags: ['테스트'],
+  version: 1,
+  favorite: false,
+  archived: false,
   lastUpdated: '2024-01-01',
   author: '테스트 관리자',
   items: [],

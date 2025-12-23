@@ -113,7 +113,7 @@ const EvaluationItemEditor = memo(({ item, onSave, onCancel, showWeight }: { ite
 
 EvaluationItemEditor.displayName = 'EvaluationItemEditor';
 
-const EvaluationItemSummary = memo(({ item, onEdit, onRemove, showWeight }: { item: EvaluationItem, onEdit: () => void, onRemove: () => void, showWeight: boolean }) => {
+const EvaluationItemSummary = memo(({ item, onEdit, onRemove, onCopy, showWeight }: { item: EvaluationItem, onEdit: () => void, onRemove: () => void, onCopy: () => void, showWeight: boolean }) => {
     const icon = useMemo(() => item.type === '정량' ? ICONS.dashboard : ICONS.documentText, [item.type]);
     const color = useMemo(() => item.type === '정량' ? 'text-green-600' : 'text-blue-600', [item.type]);
     return (
@@ -125,6 +125,9 @@ const EvaluationItemSummary = memo(({ item, onEdit, onRemove, showWeight }: { it
                 {showWeight && <span className="text-sm text-slate-500">({item.weight}%)</span>}
             </div>
             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                <button onClick={onCopy} className="p-2 text-slate-500 hover:text-sky-600 rounded-full hover:bg-slate-200 transition-colors" title="복사">
+                    <Icon path={ICONS.copy} className="w-5 h-5" />
+                </button>
                 <button onClick={onEdit} className="p-2 text-slate-500 hover:text-sky-600 rounded-full hover:bg-slate-200 transition-colors"><Icon path={ICONS.pencil} className="w-5 h-5" /></button>
                 <button onClick={onRemove} className="p-2 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-200 transition-colors"><Icon path={ICONS.trash} className="w-5 h-5" /></button>
             </div>
@@ -138,19 +141,25 @@ interface TemplateEditorProps {
     onSave: (template: EvaluationTemplate) => void;
     onCancel: () => void;
     initialTemplate?: EvaluationTemplate | null;
+    categoryOptions: string[];
 }
 
-const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, initialTemplate = null }) => {
+const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, initialTemplate = null, categoryOptions }) => {
     const [template, setTemplate] = useState<{
         name: string;
         type: string;
+        category: string;
         items: EvaluationItem[];
     }>({
         name: '',
         type: TEMPLATE_TYPE_OPTIONS[0],
+        category: categoryOptions[0] || '공통',
         items: [],
     });
     const [activeItemId, setActiveItemId] = useState<number | null>(null);
+    const [draggedItemId, setDraggedItemId] = useState<number | null>(null);
+    const [tagsInput, setTagsInput] = useState('');
+    const [copiedItem, setCopiedItem] = useState<EvaluationItem | null>(null);
     const weightedTemplateTypes = useMemo(() => new Set(['역량 평가', '수습 평가']), []);
     const usesWeights = weightedTemplateTypes.has(template.type);
     const typeOptions = useMemo(() => {
@@ -160,18 +169,26 @@ const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, 
         }
         return Array.from(optionSet);
     }, [template.type]);
+    const normalizedTags = useMemo(() => (
+        tagsInput.split(',').map(tag => tag.trim()).filter(Boolean)
+    ), [tagsInput]);
 
     useEffect(() => {
         if (initialTemplate) {
             setTemplate({
                 name: initialTemplate.name || '',
                 type: initialTemplate.type || TEMPLATE_TYPE_OPTIONS[0],
+                category: initialTemplate.category || categoryOptions[0] || '공통',
                 items: initialTemplate.items || Array.from({ length: initialTemplate.questions || 0 }, (_, i) => ({
                      id: i, type: '정성', title: `질문 ${i+1}`, weight: Math.round(100 / (initialTemplate.questions || 1)), details: { description: '' }, scoring: JSON.parse(JSON.stringify(defaultScoring))
                 }))
             });
+            setTagsInput((initialTemplate.tags || []).join(', '));
+        } else {
+            setTagsInput('');
         }
-    }, [initialTemplate]);
+        setCopiedItem(null);
+    }, [initialTemplate, categoryOptions]);
 
     const handleItemChange = useCallback((updatedItem: EvaluationItem) => {
         setTemplate(prev => ({
@@ -195,6 +212,49 @@ const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, 
         }
     }, [activeItemId]);
 
+    const handleCopyItem = useCallback((item: EvaluationItem) => {
+        setCopiedItem({
+            ...item,
+            details: { ...item.details },
+            scoring: item.scoring.map(score => ({ ...score })),
+        });
+    }, []);
+
+    const handlePasteItem = useCallback(() => {
+        if (!copiedItem) return;
+        const newItem: EvaluationItem = {
+            ...copiedItem,
+            id: Date.now(),
+            weight: usesWeights ? copiedItem.weight : 0,
+            details: { ...copiedItem.details },
+            scoring: copiedItem.scoring.map(score => ({ ...score })),
+        };
+        setTemplate(prev => ({ ...prev, items: [...prev.items, newItem] }));
+        setActiveItemId(newItem.id);
+    }, [copiedItem, usesWeights]);
+
+    const handleDragStart = useCallback((id: number) => {
+        setDraggedItemId(id);
+    }, []);
+
+    const handleDragEnd = useCallback(() => {
+        setDraggedItemId(null);
+    }, []);
+
+    const handleDrop = useCallback((targetId: number) => {
+        if (draggedItemId === null || draggedItemId === targetId) return;
+        setTemplate(prev => {
+            const items = [...prev.items];
+            const fromIndex = items.findIndex(item => item.id === draggedItemId);
+            const toIndex = items.findIndex(item => item.id === targetId);
+            if (fromIndex === -1 || toIndex === -1) return prev;
+            const [moved] = items.splice(fromIndex, 1);
+            items.splice(toIndex, 0, moved);
+            return { ...prev, items };
+        });
+        setDraggedItemId(null);
+    }, [draggedItemId]);
+
     const totalWeight = useMemo(() => template.items.reduce((sum, item) => sum + (item.weight || 0), 0), [template.items]);
     
     const handleSave = useCallback(() => {
@@ -211,15 +271,18 @@ const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, 
             return;
         }
         
+        const nextVersion = initialTemplate?.version ? initialTemplate.version + 1 : 1;
         const finalTemplate: EvaluationTemplate = {
             ...template,
+            tags: normalizedTags,
+            version: nextVersion,
             id: initialTemplate?.id || Date.now(),
-            category: '공통',
+            category: template.category || categoryOptions[0] || '공통',
             lastUpdated: new Date().toISOString().split('T')[0],
             author: currentUser.name,
         };
         onSave(finalTemplate);
-    }, [totalWeight, template, initialTemplate, onSave, usesWeights]);
+    }, [totalWeight, template, initialTemplate, onSave, usesWeights, normalizedTags, categoryOptions]);
     
     return (
         <div>
@@ -230,6 +293,9 @@ const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, 
                         라이브러리로 돌아가기
                     </button>
                     <h1 className="text-3xl font-bold text-slate-900">{initialTemplate ? '템플릿 수정' : '새 템플릿 만들기'}</h1>
+                    <p className="text-sm text-slate-500 mt-1">
+                        버전 {initialTemplate?.version ? `v${initialTemplate.version}` : 'v1'}
+                    </p>
                 </div>
                 <div className="flex items-center gap-4">
                      <div className="text-right space-y-2">
@@ -277,6 +343,35 @@ const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, 
                                 ))}
                             </select>
                         </div>
+                        <InputField
+                            label="카테고리"
+                            id="templateCategory"
+                            name="templateCategory"
+                            type="text"
+                            value={template.category}
+                            onChange={(e) => setTemplate({...template, category: e.target.value})}
+                            placeholder="예: 공통, 개발, 영업"
+                        />
+                        <div>
+                            <InputField
+                                label="태그 (쉼표로 구분)"
+                                id="templateTags"
+                                name="templateTags"
+                                type="text"
+                                value={tagsInput}
+                                onChange={(e) => setTagsInput(e.target.value)}
+                                placeholder="예: 상반기, 리더십, 핵심역량"
+                            />
+                            {normalizedTags.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {normalizedTags.map(tag => (
+                                        <span key={tag} className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </SettingsCard>
 
@@ -286,7 +381,15 @@ const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, 
                 >
                     <div className="space-y-4">
                          {template.items.map((item) => (
-                            <div key={item.id}>
+                            <div
+                                key={item.id}
+                                draggable
+                                onDragStart={() => handleDragStart(item.id)}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={() => handleDrop(item.id)}
+                                className={draggedItemId === item.id ? 'opacity-60' : ''}
+                            >
                             {activeItemId === item.id ? (
                                 <EvaluationItemEditor 
                                     item={item} 
@@ -299,6 +402,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, 
                                     item={item} 
                                     onEdit={() => setActiveItemId(item.id)}
                                     onRemove={() => removeItem(item.id)}
+                                    onCopy={() => handleCopyItem(item)}
                                     showWeight={usesWeights}
                                 />
                             )}
@@ -322,7 +426,20 @@ const TemplateEditor: React.FC<TemplateEditorProps> = memo(({ onSave, onCancel, 
                                    질문 추가
                                 </button>
                             )}
+                            <button
+                                onClick={handlePasteItem}
+                                disabled={!copiedItem}
+                                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-slate-600 bg-slate-50 hover:bg-slate-100 p-3 rounded-lg border-2 border-dashed border-slate-200 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <Icon path={ICONS.copy} className="w-5 h-5" />
+                                항목 붙여넣기
+                            </button>
                         </div>
+                        {copiedItem && (
+                            <p className="text-xs text-slate-500">
+                                복사됨: {copiedItem.title || '이름 없는 항목'}
+                            </p>
+                        )}
                     </div>
                 </SettingsCard>
             </div>

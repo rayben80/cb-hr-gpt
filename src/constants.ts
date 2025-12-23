@@ -61,6 +61,10 @@ export interface EvaluationTemplate {
   name: string;
   type: string;
   category: string;
+  tags?: string[];
+  version?: number;
+  favorite?: boolean;
+  archived?: boolean;
   questions?: number;
   items?: EvaluationItem[];
   lastUpdated: string;
@@ -160,6 +164,8 @@ export const ICONS = {
     hand: "M7.864 4.243A7.5 7.5 0 0119.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 004.5 10.5a7.464 7.464 0 01-1.15 3.993m1.989 3.559A11.209 11.209 0 008.25 10.5a3.75 3.75 0 117.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 01-3.6 9.75m6.633-4.596a18.666 18.666 0 01-2.485 5.33",
     move3d: "M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z",
     info: "M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z",
+    star: "M11.48 3.499a.75.75 0 011.04 0l2.347 2.334 3.247.47a.75.75 0 01.416 1.279l-2.347 2.334.554 3.227a.75.75 0 01-1.088.791L12 12.347l-2.999 1.577a.75.75 0 01-1.088-.79l.554-3.228L6.12 7.582a.75.75 0 01.416-1.279l3.247-.47 2.347-2.334z",
+    copy: "M16.5 8.25H8.25A2.25 2.25 0 006 10.5v8.25A2.25 2.25 0 008.25 21h8.25A2.25 2.25 0 0018.75 18.75V10.5A2.25 2.25 0 0016.5 8.25zM6 3.75A2.25 2.25 0 018.25 1.5h8.25A2.25 2.25 0 0118.75 3.75V6H9.75A3.75 3.75 0 006 9.75V3.75z",
 };
 
 const DEFAULT_HEADQUARTER_LEADER: Headquarter['leader'] = {
@@ -274,11 +280,11 @@ export const initialEvaluationsData: Evaluation[] = [
 ];
 
 export const initialLibraryData: EvaluationTemplate[] = [
-  { id: 1, name: '역량 평가 (공통)', type: '역량 평가', category: '공통', questions: 12, lastUpdated: '2024-05-10', author: '장주휘' },
-  { id: 2, name: '프로젝트 동료 피드백', type: '다면 평가', category: '개발', questions: 8, lastUpdated: '2024-06-15', author: '정현옥' },
-  { id: 3, name: '신규 입사자 수습 평가', type: '수습 평가', category: '공통', questions: 15, lastUpdated: '2024-04-20', author: '장주휘' },
-  { id: 4, name: '리더십 역량 진단', type: '리더십 평가', category: '리더십', questions: 20, lastUpdated: '2024-03-01', author: '시스템' },
-  { id: 5, name: 'Sales 직군 역량 평가', type: '역량 평가', category: '영업', questions: 10, lastUpdated: '2024-07-01', author: '장주휘' },
+  { id: 1, name: '역량 평가 (공통)', type: '역량 평가', category: '공통', tags: ['공통', '역량'], version: 1, questions: 12, lastUpdated: '2024-05-10', author: '장주휘' },
+  { id: 2, name: '프로젝트 동료 피드백', type: '다면 평가', category: '개발', tags: ['프로젝트', '협업'], version: 1, questions: 8, lastUpdated: '2024-06-15', author: '정현옥' },
+  { id: 3, name: '신규 입사자 수습 평가', type: '수습 평가', category: '공통', tags: ['온보딩'], version: 1, questions: 15, lastUpdated: '2024-04-20', author: '장주휘' },
+  { id: 4, name: '리더십 역량 진단', type: '리더십 평가', category: '리더십', tags: ['리더십'], version: 1, questions: 20, lastUpdated: '2024-03-01', author: '시스템' },
+  { id: 5, name: 'Sales 직군 역량 평가', type: '역량 평가', category: '영업', tags: ['영업'], version: 1, questions: 10, lastUpdated: '2024-07-01', author: '장주휘' },
 ];
 
 export const evaluationResultData = {
