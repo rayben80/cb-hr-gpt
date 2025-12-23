@@ -21,16 +21,18 @@ interface InputFieldProps {
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     placeholder?: string;
     as?: 'input' | 'textarea';
+    disabled?: boolean;
 }
 
-export const InputField: React.FC<InputFieldProps> = ({ label, id, type, value, onChange, placeholder, as = 'input', name }) => {
+export const InputField: React.FC<InputFieldProps> = ({ label, id, type, value, onChange, placeholder, as = 'input', name, disabled = false }) => {
     const commonProps = {
         id,
         value,
         onChange,
         placeholder,
         name: name || id,
-        className: "block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm",
+        disabled,
+        className: "block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed",
     };
 
     return (

@@ -8,16 +8,16 @@ interface AnnualEvaluationSettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (weights: { firstHalf: number, secondHalf: number, peerReview: number }) => void;
-    initialWeights: { firstHalf: number, secondHalf: number, peerReview: number };
+    weights: { firstHalf: number, secondHalf: number, peerReview: number };
 }
 
 const AnnualEvaluationSettingsModal: React.FC<AnnualEvaluationSettingsModalProps> = ({
     isOpen,
     onClose,
     onSave,
-    initialWeights,
+    weights,
 }) => {
-    const [weights, setWeights] = useState(initialWeights);
+    const [localWeights, setLocalWeights] = useState(weights);
 
     // ESC 키로 모달 닫기
     useEffect(() => {
@@ -35,19 +35,19 @@ const AnnualEvaluationSettingsModal: React.FC<AnnualEvaluationSettingsModalProps
 
     useEffect(() => {
         if (isOpen) {
-            setWeights(initialWeights);
+            setLocalWeights(weights);
         }
-    }, [isOpen, initialWeights]);
+    }, [isOpen, weights]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setWeights(prev => ({
+        setLocalWeights(prev => ({
             ...prev,
             [name]: value === '' ? 0 : parseInt(value, 10),
         }));
     };
 
-    const totalWeight = weights.firstHalf + weights.secondHalf + weights.peerReview;
+    const totalWeight = localWeights.firstHalf + localWeights.secondHalf + localWeights.peerReview;
     const isValid = totalWeight === 100;
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -58,7 +58,7 @@ const AnnualEvaluationSettingsModal: React.FC<AnnualEvaluationSettingsModalProps
     };
 
     const handleSave = () => {
-        onSave(weights);
+        onSave(localWeights);
         onClose();
     };
 
@@ -88,7 +88,7 @@ const AnnualEvaluationSettingsModal: React.FC<AnnualEvaluationSettingsModalProps
                             id="firstHalf"
                             name="firstHalf"
                             type="number"
-                            value={String(weights.firstHalf)}
+                            value={String(localWeights.firstHalf)}
                             onChange={handleChange}
                             placeholder="예: 40"
                         />
@@ -97,7 +97,7 @@ const AnnualEvaluationSettingsModal: React.FC<AnnualEvaluationSettingsModalProps
                             id="secondHalf"
                             name="secondHalf"
                             type="number"
-                            value={String(weights.secondHalf)}
+                            value={String(localWeights.secondHalf)}
                             onChange={handleChange}
                             placeholder="예: 40"
                         />
@@ -106,7 +106,7 @@ const AnnualEvaluationSettingsModal: React.FC<AnnualEvaluationSettingsModalProps
                             id="peerReview"
                             name="peerReview"
                             type="number"
-                            value={String(weights.peerReview)}
+                            value={String(localWeights.peerReview)}
                             onChange={handleChange}
                             placeholder="예: 20"
                         />

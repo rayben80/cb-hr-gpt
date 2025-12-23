@@ -114,6 +114,7 @@ const EvaluationManagement = memo(() => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedEvaluationId, setSelectedEvaluationId] = useState<number | string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
     
     const [evaluationWeights, setEvaluationWeights] = useState({
         firstHalf: 40,
@@ -126,17 +127,30 @@ const EvaluationManagement = memo(() => {
     const { showSuccess } = useError();
 
     // 성능 최적화: 필터링 로직 메모이제이션
-    const filteredEvaluations = useMemo(() => 
-        activeTab === '전체' ? evaluations : evaluations.filter(e => e.status === activeTab)
-    , [activeTab, evaluations]);
+    const filteredEvaluations = useMemo(() => {
+        const baseEvaluations = activeTab === '전체'
+            ? evaluations
+            : evaluations.filter(e => e.status === activeTab);
+
+        const query = searchTerm.trim().toLowerCase();
+        if (!query) return baseEvaluations;
+
+        return baseEvaluations.filter(e => (
+            e.name.toLowerCase().includes(query)
+            || e.type.toLowerCase().includes(query)
+            || e.subject.toLowerCase().includes(query)
+        ));
+    }, [activeTab, evaluations, searchTerm]);
 
     // 성능 최적화: 콜백 함수 메모이제이션
     const handleLaunchEvaluation = useCallback(async (newEvaluationData: Omit<Evaluation, 'id' | 'status' | 'progress' | 'score'>) => {
         try {
+            const today = new Date().toISOString().slice(0, 10);
+            const status = newEvaluationData.startDate <= today ? '진행중' as const : '예정' as const;
             const evaluationToAdd = {
                 ...newEvaluationData,
                 id: Date.now() + Math.random(), // 임시 ID 생성
-                status: '예정' as const,
+                status,
                 progress: 0,
                 score: null,
             };
@@ -253,7 +267,13 @@ const EvaluationManagement = memo(() => {
                     </div>
                     <div className="relative w-full md:w-64">
                          <Icon path={ICONS.search} className="w-5 h-5 text-slate-400 absolute top-1/2 left-3 -translate-y-1/2" />
-                        <input type="text" placeholder="평가명 검색..." className="pl-10 pr-4 py-2 w-full border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all" />
+                        <input
+                            type="text"
+                            placeholder="평가명/구분 검색..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 pr-4 py-2 w-full border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                        />
                     </div>
                 </div>
                  {isLoading ? (
@@ -285,31 +305,39 @@ const EvaluationManagement = memo(() => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-slate-200">
-                                {filteredEvaluations.map(e => (
-                                    <tr key={e.id} className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{e.name}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{e.type}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap"><StatusBadge status={e.status} /></td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{e.subject}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{e.startDate} ~ {e.endDate}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                <ProgressBar progress={e.progress} />
-                                                <span className="text-sm text-slate-600">{e.progress}%</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            {e.status === '완료' && (
-                                                <button 
-                                                    onClick={() => handleViewResult(e.id)}
-                                                    className="text-sky-600 hover:text-sky-900 mr-3"
-                                                >
-                                                    결과 보기
-                                                </button>
-                                            )}
+                                {filteredEvaluations.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-500">
+                                            {searchTerm.trim() ? '검색 결과가 없습니다.' : '표시할 평가가 없습니다.'}
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    filteredEvaluations.map(e => (
+                                        <tr key={e.id} className="hover:bg-slate-50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{e.name}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{e.type}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap"><StatusBadge status={e.status} /></td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{e.subject}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{e.startDate} ~ {e.endDate}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center gap-2">
+                                                    <ProgressBar progress={e.progress} />
+                                                    <span className="text-sm text-slate-600">{e.progress}%</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                {e.status === '완료' && (
+                                                    <button 
+                                                        onClick={() => handleViewResult(e.id)}
+                                                        className="text-sky-600 hover:text-sky-900 mr-3"
+                                                    >
+                                                        결과 보기
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>

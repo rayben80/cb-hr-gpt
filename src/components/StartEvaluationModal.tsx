@@ -16,22 +16,28 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
     const [step, setStep] = useState(1);
     const [newEvaluation, setNewEvaluation] = useState<{
         name: string;
+        period: string;
+        timing: 'now' | 'scheduled';
         startDate: string;
         endDate: string;
         templateId: string | number | null;
         subjects: string[];
     }>({
         name: '',
+        period: '수시',
+        timing: 'scheduled',
         startDate: '',
         endDate: '',
         templateId: null,
         subjects: [],
     });
     const [selectedMembers, setSelectedMembers] = useState(new Set<string>());
+    const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+    const periodOptions = useMemo(() => ['상반기', '하반기', '연간', '수시'], []);
     
     const resetAndClose = useCallback(() => {
         setStep(1);
-        setNewEvaluation({ name: '', startDate: '', endDate: '', templateId: null, subjects: [] });
+        setNewEvaluation({ name: '', period: '수시', timing: 'scheduled', startDate: '', endDate: '', templateId: null, subjects: [] });
         setSelectedMembers(new Set());
         onClose();
     }, [onClose]);
@@ -42,13 +48,13 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
         onLaunch({
             name: newEvaluation.name,
             type: template.type,
-            period: '수시',
+            period: newEvaluation.period,
             subject: `${selectedMembers.size}명`,
-            startDate: newEvaluation.startDate,
+            startDate: newEvaluation.timing === 'now' ? today : newEvaluation.startDate,
             endDate: newEvaluation.endDate,
         });
         resetAndClose();
-    }, [templates, newEvaluation, selectedMembers.size, onLaunch, resetAndClose]);
+    }, [templates, newEvaluation, selectedMembers.size, onLaunch, resetAndClose, today]);
 
     const toggleMember = useCallback((memberName: string) => {
         const newSet = new Set(selectedMembers);
@@ -59,6 +65,18 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
         }
         setSelectedMembers(newSet);
     }, [selectedMembers]);
+
+    const handleTimingChange = useCallback((timing: 'now' | 'scheduled') => {
+        setNewEvaluation(prev => ({
+            ...prev,
+            timing,
+            startDate: timing === 'now' ? today : '',
+        }));
+    }, [today]);
+
+    const handlePeriodChange = useCallback((period: string) => {
+        setNewEvaluation(prev => ({ ...prev, period }));
+    }, []);
 
     const getGroupMembers = useCallback((group: Team | Part): Member[] => {
         if ('parts' in group) {
@@ -73,15 +91,16 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
 
     const getGroupSelectionState = useCallback((group: Team | Part) => {
         const members = getGroupMembers(group);
-        if (members.length === 0) return { checked: false, indeterminate: false };
+        if (members.length === 0) return { checked: false, indeterminate: false, disabled: true };
         const selectedCount = members.filter(m => selectedMembers.has(m.name)).length;
-        if (selectedCount === 0) return { checked: false, indeterminate: false };
-        if (selectedCount === members.length) return { checked: true, indeterminate: false };
-        return { checked: false, indeterminate: true };
+        if (selectedCount === 0) return { checked: false, indeterminate: false, disabled: false };
+        if (selectedCount === members.length) return { checked: true, indeterminate: false, disabled: false };
+        return { checked: false, indeterminate: true, disabled: false };
     }, [getGroupMembers, selectedMembers]);
 
     const toggleGroup = useCallback((group: Team | Part) => {
         const members = getGroupMembers(group);
+        if (members.length === 0) return;
         const { checked } = getGroupSelectionState(group);
         const newSet = new Set(selectedMembers);
         if (checked) {
@@ -93,10 +112,10 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
     }, [getGroupMembers, getGroupSelectionState, selectedMembers]);
 
     const validationStates = useMemo(() => ({
-        isStep1Valid: newEvaluation.name && newEvaluation.startDate && newEvaluation.endDate,
+        isStep1Valid: newEvaluation.name && newEvaluation.period && newEvaluation.endDate && (newEvaluation.timing === 'now' || newEvaluation.startDate),
         isStep2Valid: newEvaluation.templateId !== null,
         isStep3Valid: selectedMembers.size > 0
-    }), [newEvaluation.name, newEvaluation.startDate, newEvaluation.endDate, newEvaluation.templateId, selectedMembers.size]);
+    }), [newEvaluation.name, newEvaluation.period, newEvaluation.timing, newEvaluation.startDate, newEvaluation.endDate, newEvaluation.templateId, selectedMembers.size]);
 
     const steps = useMemo(() => ['기본 정보', '템플릿 선택', '대상자 지정', '검토 및 시작'], []);
 
@@ -132,8 +151,67 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">평가의 기본 정보를 입력해주세요.</h3>
                             <div className="space-y-6">
                                 <InputField label="평가명" id="evalName" name="evalName" type="text" value={newEvaluation.name} onChange={(e) => setNewEvaluation({...newEvaluation, name: e.target.value})} placeholder="예: 2024년 4분기 동료 피드백" />
+                                <div>
+                                    <p className="block text-sm font-medium text-slate-700 mb-2">평가 기간</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {periodOptions.map(option => (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                onClick={() => handlePeriodChange(option)}
+                                                className={`px-3 py-2 rounded-md text-sm font-medium border transition-all ${
+                                                    newEvaluation.period === option
+                                                        ? 'border-sky-500 bg-sky-50 text-sky-700'
+                                                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                                                }`}
+                                                aria-pressed={newEvaluation.period === option}
+                                            >
+                                                {option}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="block text-sm font-medium text-slate-700 mb-2">시작 방식</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleTimingChange('now')}
+                                            className={`px-3 py-2 rounded-md text-sm font-medium border transition-all ${
+                                                newEvaluation.timing === 'now'
+                                                    ? 'border-sky-500 bg-sky-50 text-sky-700'
+                                                    : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                                            }`}
+                                            aria-pressed={newEvaluation.timing === 'now'}
+                                        >
+                                            즉시 시작
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleTimingChange('scheduled')}
+                                            className={`px-3 py-2 rounded-md text-sm font-medium border transition-all ${
+                                                newEvaluation.timing === 'scheduled'
+                                                    ? 'border-sky-500 bg-sky-50 text-sky-700'
+                                                    : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                                            }`}
+                                            aria-pressed={newEvaluation.timing === 'scheduled'}
+                                        >
+                                            예약 시작
+                                        </button>
+                                    </div>
+                                    <p className="mt-2 text-xs text-slate-500">즉시 시작은 시작일을 오늘로 고정합니다.</p>
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <InputField label="평가 시작일" id="startDate" name="startDate" type="date" value={newEvaluation.startDate} onChange={(e) => setNewEvaluation({...newEvaluation, startDate: e.target.value})} placeholder="" />
+                                    <InputField
+                                        label="평가 시작일"
+                                        id="startDate"
+                                        name="startDate"
+                                        type="date"
+                                        value={newEvaluation.timing === 'now' ? today : newEvaluation.startDate}
+                                        onChange={(e) => setNewEvaluation({...newEvaluation, startDate: e.target.value})}
+                                        placeholder=""
+                                        disabled={newEvaluation.timing === 'now'}
+                                    />
                                     <InputField label="평가 종료일" id="endDate" name="endDate" type="date" value={newEvaluation.endDate} onChange={(e) => setNewEvaluation({...newEvaluation, endDate: e.target.value})} placeholder="" />
                                 </div>
                             </div>
@@ -159,6 +237,7 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
                     {step === 3 && (
                          <div>
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">평가 대상자를 선택해주세요.</h3>
+                            <p className="text-sm text-slate-500 mb-4">재직/인턴 구성원만 표시됩니다.</p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[450px]">
                                 <div className="border border-slate-200 rounded-lg overflow-y-auto p-4">
                                     <div className="space-y-4">
@@ -173,6 +252,7 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
                                                     <div className="pl-6 mt-2 space-y-2">
                                                         {team.parts.map(part => {
                                                             const partState = getGroupSelectionState(part);
+                                                            const eligibleMembers = getGroupMembers(part);
                                                             return (
                                                                 <div key={part.title}>
                                                                     <div className="flex items-center space-x-3 p-1">
@@ -180,12 +260,16 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
                                                                         <span className="font-semibold text-slate-700">{part.title}</span>
                                                                     </div>
                                                                     <div className="pl-8 mt-1 space-y-1">
-                                                                        {part.members.map(member => (
-                                                                            <div key={member.name} className="flex items-center space-x-3 p-1">
-                                                                                <Checkbox checked={selectedMembers.has(member.name)} onChange={() => toggleMember(member.name)} indeterminate={false} />
-                                                                                <span className="text-sm text-slate-600">{member.name}</span>
-                                                                            </div>
-                                                                        ))}
+                                                                        {eligibleMembers.length === 0 ? (
+                                                                            <p className="text-xs text-slate-400">대상 없음</p>
+                                                                        ) : (
+                                                                            eligibleMembers.map(member => (
+                                                                                <div key={member.name} className="flex items-center space-x-3 p-1">
+                                                                                    <Checkbox checked={selectedMembers.has(member.name)} onChange={() => toggleMember(member.name)} indeterminate={false} />
+                                                                                    <span className="text-sm text-slate-600">{member.name}</span>
+                                                                                </div>
+                                                                            ))
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             )
@@ -212,7 +296,9 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">입력하신 정보를 확인해주세요.</h3>
                             <div className="bg-slate-50 rounded-lg p-6 space-y-4">
                                 <div><span className="font-semibold text-slate-600">평가명:</span> {newEvaluation.name}</div>
-                                <div><span className="font-semibold text-slate-600">평가 기간:</span> {newEvaluation.startDate} ~ {newEvaluation.endDate}</div>
+                                <div><span className="font-semibold text-slate-600">평가 구분:</span> {newEvaluation.period}</div>
+                                <div><span className="font-semibold text-slate-600">시작 방식:</span> {newEvaluation.timing === 'now' ? '즉시 시작' : '예약 시작'}</div>
+                                <div><span className="font-semibold text-slate-600">평가 일정:</span> {(newEvaluation.timing === 'now' ? today : newEvaluation.startDate)} ~ {newEvaluation.endDate}</div>
                                 <div><span className="font-semibold text-slate-600">템플릿:</span> {templates.find(t => t.id === newEvaluation.templateId)?.name}</div>
                                 <div><span className="font-semibold text-slate-600">대상자:</span> 총 {selectedMembers.size}명</div>
                             </div>
