@@ -62,10 +62,11 @@ const StartEvaluationModal: React.FC<StartEvaluationModalProps> = memo(({ isOpen
 
     const getGroupMembers = useCallback((group: Team | Part): Member[] => {
         if ('parts' in group) {
-            return group.parts.flatMap(p => p.members);
+            return group.parts.flatMap(p => p.members)
+                .filter(member => member.status === 'active' || member.status === 'intern');
         }
         if ('members' in group) {
-            return group.members;
+            return group.members.filter(member => member.status === 'active' || member.status === 'intern');
         }
         return [];
     }, []);

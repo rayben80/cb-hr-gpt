@@ -299,12 +299,14 @@ const EvaluationManagement = memo(() => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button 
-                                                onClick={() => handleViewResult(e.id)}
-                                                className="text-sky-600 hover:text-sky-900 mr-3"
-                                            >
-                                                결과 보기
-                                            </button>
+                                            {e.status === '완료' && (
+                                                <button 
+                                                    onClick={() => handleViewResult(e.id)}
+                                                    className="text-sky-600 hover:text-sky-900 mr-3"
+                                                >
+                                                    결과 보기
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
