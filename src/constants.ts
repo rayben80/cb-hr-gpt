@@ -81,6 +81,13 @@ export interface EvaluationItem {
   scoring: { grade: string; description: string }[];
 }
 
+export const TEMPLATE_TYPE_OPTIONS = [
+  '역량 평가',
+  '다면 평가',
+  '리더십 평가',
+  '수습 평가',
+] as const;
+
 
 export const ICONS = {
     dashboard: "M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 1.5m1-1.5l1 1.5m0 0l.5 1.5m-1.5-1.5l-1.5-1.5m1.5 1.5l1.5-1.5m6.75-12v1.5m0 0l-1.5-1.5m1.5 1.5l1.5-1.5",
