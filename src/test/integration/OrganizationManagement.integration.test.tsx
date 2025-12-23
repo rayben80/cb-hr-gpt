@@ -78,7 +78,6 @@ const MockOrganizationManagement = () => {
       
       <div data-testid="action-buttons">
         <button>팀 추가</button>
-        <button>조직 개편</button>
       </div>
     </div>
   );
@@ -158,6 +157,5 @@ describe('조직 관리 통합 테스트', () => {
     render(<MockOrganizationManagement />);
 
     expect(screen.getByText('팀 추가')).toBeInTheDocument();
-    expect(screen.getByText('조직 개편')).toBeInTheDocument();
   });
 });

@@ -18,7 +18,6 @@ import { InactiveMemberList } from './organization/InactiveMemberList';
 import { MemberActionModal } from './organization/MemberActionModal';
 import { PartActionModal } from './organization/PartActionModal';
 import { TeamActionModal } from './organization/TeamActionModal';
-import { RestructuringWizardOptimized as RestructuringWizard } from './organization/RestructuringWizard';
 import { LoadingSpinner } from './Progress';
 import { StatusCard } from './Status';
 import { MemberMoveModal } from './organization/MemberMoveModal';
@@ -32,7 +31,6 @@ const OrganizationManagement = memo(() => {
     const [showAdvancedSearch, setShowAdvancedSearch] = useState(false); // 고급 검색 옵션 표시 여부
     const [baseDate, setBaseDate] = useState(new Date().toISOString().split('T')[0]);
     const [activeTab, setActiveTab] = useState('orgChart');
-    const [isWizardOpen, setIsWizardOpen] = useState(false);
     
     // 멤버 이동 모달 관련 상태
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
@@ -444,11 +442,6 @@ const OrganizationManagement = memo(() => {
         };
     }, [stopAutoScroll, updateAutoScroll]);
     
-    // 조직 개편 처리
-    const handleApplyRestructuring = (newTeams: any[]) => {
-        setTeams(newTeams);
-        setIsWizardOpen(false);
-    };
     
     return (
         <>
@@ -559,10 +552,6 @@ const OrganizationManagement = memo(() => {
                         <button onClick={() => openTeamModal('add', null)} className="mobile-button bg-sky-500 hover:bg-sky-600 text-white transition-all">
                             <Icon path={ICONS.plus} className="w-5 h-5 mr-2" />
                             팀 추가
-                        </button>
-                        <button onClick={() => setIsWizardOpen(true)} className="mobile-button bg-slate-600 hover:bg-slate-700 text-white transition-all">
-                            <Icon path={ICONS.organizationChart} className="w-5 h-5 mr-2" />
-                            조직 개편
                         </button>
                         <button 
                             onClick={handleSeedDatabase} 
@@ -767,14 +756,6 @@ const OrganizationManagement = memo(() => {
                 onSave={handleSaveTeam}
                 mode={teamModalState.mode}
                 initialData={teamModalState.data}
-            />
-            <RestructuringWizard
-                isOpen={isWizardOpen}
-                onClose={() => {
-                    setIsWizardOpen(false);
-                }}
-                onSave={handleApplyRestructuring}
-                currentTeams={teams}
             />
             <ConfirmationModal 
                 isOpen={teamPartConfirmation.isOpen}
