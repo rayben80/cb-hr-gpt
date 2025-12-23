@@ -98,6 +98,13 @@ export const TeamCard: React.FC<TeamCardProps> = memo(({
                     <p className="text-xs sm:text-sm text-slate-500 mt-1 truncate">팀장: {team.lead}</p>
                 </div>
                 <div className="flex-shrink-0 flex items-center gap-1">
+                    <button
+                        onClick={handleAddPart}
+                        className="flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-full px-2 py-1 sm:px-3 sm:py-1.5 transition-colors touch-manipulation"
+                    >
+                        <Icon path={ICONS.plus} className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">파트 추가</span>
+                    </button>
                     <button 
                         onClick={toggleCollapse}
                         className="p-2 text-slate-500 hover:bg-slate-200 rounded-full transition-colors touch-manipulation"
@@ -142,16 +149,6 @@ export const TeamCard: React.FC<TeamCardProps> = memo(({
                     ))}
                 </div>
             )}
-            <div className="mt-2 pt-2 border-t border-slate-100">
-                <button
-                    onClick={handleAddPart}
-                    className="w-full flex items-center justify-center gap-2 text-xs sm:text-sm font-medium text-sky-600 bg-sky-50 hover:bg-sky-100 active:bg-sky-200 p-2.5 sm:p-3 rounded-lg border-2 border-dashed border-sky-200 transition-colors touch-manipulation"
-                >
-                    <Icon path={ICONS.plus} className="w-4 sm:w-5 h-4 sm:h-5" />
-                    <span className="hidden xs:inline">파트 추가</span>
-                    <span className="xs:hidden">파트 +</span>
-                </button>
-            </div>
         </div>
     );
 });

@@ -10,6 +10,8 @@ import { useError } from '../contexts/ErrorContext';
 interface SaveMemberOptions {
     keepOpen?: boolean;
     onSuccess?: () => void;
+    setTeamLead?: boolean;
+    clearTeamLead?: boolean;
 }
 
 export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => void) => {
@@ -49,14 +51,28 @@ export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => 
     }, [teams]);
 
     // 멤버 저장 로직
+    const findMemberRecord = useCallback((memberId: string) => {
+        for (const team of teams) {
+            for (const part of team.parts) {
+                const member = part.members.find(m => m.id === memberId);
+                if (member) {
+                    return { teamId: team.id, partId: part.id, member };
+                }
+            }
+        }
+        return null;
+    }, [teams]);
+
     const handleSaveMember = useCallback(async (
         data: MemberType & { teamId: string; partId: string },
         isEditing: boolean,
         options?: SaveMemberOptions
     ) => {
         const { teamId, partId, ...memberData } = data;
+        const originalRecord = memberData.id ? findMemberRecord(memberData.id) : null;
         
         await saveOperationActions.execute(async () => {
+            let updatedTeams: Team[] = [];
             if (isEditing) {
                 const oldLocation = findMemberLocation(memberData);
                 
@@ -81,7 +97,7 @@ export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => 
                         return team;
                     });
                     
-                    const updatedTeams = teamsWithoutMember.map((team: Team) => {
+                    updatedTeams = teamsWithoutMember.map((team: Team) => {
                         if (team.id === teamId) {
                             return {
                                 ...team,
@@ -107,11 +123,10 @@ export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => 
                         return team;
                     });
                     
-                    setTeams(updatedTeams);
                 } else {
                     // 같은 팀/파트 내에서 정보만 업데이트
                     // UI 상태 업데이트
-                    const updatedTeams = teams.map((team: Team) => {
+                    updatedTeams = teams.map((team: Team) => {
                         if (team.id === teamId) {
                             return {
                                 ...team,
@@ -144,12 +159,11 @@ export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => 
                         return team;
                     });
                     
-                    setTeams(updatedTeams);
                 }
             } else {
                 // 새 멤버 추가
                 // UI 상태 업데이트
-                const updatedTeams = teams.map((team: Team) => {
+                updatedTeams = teams.map((team: Team) => {
                     if (team.id === teamId) {
                         return {
                             ...team,
@@ -175,8 +189,43 @@ export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => 
                     return team;
                 });
                 
-                setTeams(updatedTeams);
             }
+
+            if (!updatedTeams.length) {
+                updatedTeams = teams;
+            }
+
+            const nextTeams = updatedTeams.map(team => {
+                let nextLead = team.lead;
+                const isTargetTeam = team.id === teamId;
+
+                if (options?.setTeamLead && isTargetTeam && memberData.status !== 'resigned' && memberData.name.trim()) {
+                    nextLead = memberData.name;
+                }
+
+                if (!options?.setTeamLead && options?.clearTeamLead && isTargetTeam && originalRecord) {
+                    if (nextLead === originalRecord.member.name || nextLead === memberData.name) {
+                        nextLead = '';
+                    }
+                }
+
+                if (originalRecord && team.id === originalRecord.teamId) {
+                    const originalName = originalRecord.member.name;
+                    const isSameTeam = originalRecord.teamId === teamId;
+
+                    if (!isSameTeam || memberData.status === 'resigned') {
+                        if (nextLead === originalName) {
+                            nextLead = '';
+                        }
+                    } else if (originalName !== memberData.name && nextLead === originalName) {
+                        nextLead = memberData.name;
+                    }
+                }
+
+                return nextLead === team.lead ? team : { ...team, lead: nextLead };
+            });
+
+            setTeams(nextTeams);
             return 'success';
         }, {
             successMessage: isEditing ? '멤버 정보가 성공적으로 업데이트되었습니다.' : '새 멤버가 성공적으로 추가되었습니다.',
@@ -192,7 +241,7 @@ export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => 
                 options?.onSuccess?.();
             }
         });
-    }, [saveOperationActions, findMemberLocation, teams, setTeams]);
+    }, [saveOperationActions, findMemberLocation, findMemberRecord, teams, setTeams]);
 
     // 멤버 퇴사 처리
     const handleDeleteMember = useCallback((memberToDelete: MemberType) => {
@@ -226,8 +275,10 @@ export const useMemberManagement = (teams: Team[], setTeams: (teams: Team[]) => 
                     setTeams((prevTeams: Team[]) => {
                         const updatedTeams = prevTeams.map((team: Team) => {
                             if (team.id === memberToDelete.teamId) {
+                                const shouldClearLead = team.lead === memberToDelete.name;
                                 return {
                                     ...team,
+                                    ...(shouldClearLead ? { lead: '' } : {}),
                                     parts: team.parts.map((part: Part) => {
                                         if (part.id === memberToDelete.partId) {
                                             return {

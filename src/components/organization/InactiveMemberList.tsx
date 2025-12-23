@@ -80,6 +80,25 @@ export const InactiveMemberList: React.FC<InactiveMemberListProps> = memo(({ tit
             isOpen: false
         }));
     }, []);
+
+    const handleReinstate = useCallback((member: Member) => {
+        onReinstate(member);
+    }, [onReinstate]);
+
+    const handleDelete = useCallback((member: Member) => {
+        if (type === 'resigned') {
+            openConfirmation(
+                '기록 영구 삭제',
+                `${member.name}님의 퇴사 기록을 영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`,
+                () => {
+                    onDelete(member);
+                    closeConfirmation();
+                }
+            );
+        } else {
+            onDelete(member);
+        }
+    }, [type, onDelete, openConfirmation, closeConfirmation]);
     
     // 리스트 접기/펼치기 토글 함수
     const toggleCollapse = useCallback(() => {
@@ -122,25 +141,6 @@ export const InactiveMemberList: React.FC<InactiveMemberListProps> = memo(({ tit
                     <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
                         {memberDetails.map(memberWithDuration => {
                             const { duration, ...member } = memberWithDuration;
-                            
-                            // 성능 최적화: 각 멤버별 액션 콜백 메모이제이션
-                            const handleReinstate = useCallback(() => onReinstate(member), [member, onReinstate]);
-                            const handleDelete = useCallback(() => {
-                                if (type === 'resigned') {
-                                    // 퇴사자 삭제 확인 모달 표시
-                                    openConfirmation(
-                                        '기록 영구 삭제',
-                                        `${member.name}님의 퇴사 기록을 영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`,
-                                        () => {
-                                            onDelete(member);
-                                            closeConfirmation();
-                                        }
-                                    );
-                                } else {
-                                    onDelete(member);
-                                }
-                            }, [member, onDelete, type, openConfirmation, closeConfirmation]);
-                            
                             return (
                                 <div key={member.id} className="flex items-center p-3 bg-slate-50 rounded-md justify-between group">
                                      <div className="flex items-center min-w-0">
@@ -161,13 +161,13 @@ export const InactiveMemberList: React.FC<InactiveMemberListProps> = memo(({ tit
                                      </div>
                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-4">
                                         {type === 'on_leave' && (
-                                            <button onClick={handleReinstate} className="flex items-center text-sm font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 px-3 py-1 rounded-md shadow-sm">
+                                            <button onClick={() => handleReinstate(member)} className="flex items-center text-sm font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 px-3 py-1 rounded-md shadow-sm">
                                                 <Icon path={ICONS.userPlus} className="w-4 h-4 mr-2" />
                                                 복직 처리
                                             </button>
                                         )}
                                          {type === 'resigned' && (
-                                            <button onClick={handleDelete} className="flex items-center text-sm font-medium bg-white border border-slate-300 text-red-600 hover:bg-red-50 px-3 py-1 rounded-md shadow-sm">
+                                            <button onClick={() => handleDelete(member)} className="flex items-center text-sm font-medium bg-white border border-slate-300 text-red-600 hover:bg-red-50 px-3 py-1 rounded-md shadow-sm">
                                                 <Icon path={ICONS.trash} className="w-4 h-4 mr-2" />
                                                 기록 삭제
                                             </button>

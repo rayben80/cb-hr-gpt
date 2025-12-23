@@ -49,9 +49,10 @@ interface CheckboxProps {
     checked: boolean;
     indeterminate: boolean;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    disabled?: boolean;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({ checked, indeterminate, onChange }) => {
+export const Checkbox: React.FC<CheckboxProps> = ({ checked, indeterminate, onChange, disabled = false }) => {
     const ref = React.useRef<HTMLInputElement>(null);
     useEffect(() => {
         if (ref.current) {
@@ -66,7 +67,10 @@ export const Checkbox: React.FC<CheckboxProps> = ({ checked, indeterminate, onCh
                 ref={ref}
                 checked={checked}
                 onChange={onChange}
-                className="h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                disabled={disabled}
+                className={`h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500 ${
+                    disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                }`}
             />
             {indeterminate && !checked && (
                 <Icon path={ICONS.minus} className="w-4 h-4 text-sky-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />

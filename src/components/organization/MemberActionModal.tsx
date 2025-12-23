@@ -10,7 +10,7 @@ interface MemberActionModalProps {
     onSave: (
         data: Member & { teamId: string; partId: string },
         isEditing: boolean,
-        options?: { keepOpen?: boolean; onSuccess?: () => void }
+        options?: { keepOpen?: boolean; onSuccess?: () => void; setTeamLead?: boolean; clearTeamLead?: boolean }
     ) => void;
     teams: Team[];
     memberData: Member | null;
@@ -33,6 +33,7 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [initialFormData, setInitialFormData] = useState({...formData});
     const [keepAdding, setKeepAdding] = useState(false);
+    const [assignTeamLead, setAssignTeamLead] = useState(false);
 
     // ESC 키로 모달 닫기
     useEffect(() => {
@@ -63,6 +64,7 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
 
             if (memberData) {
                 const location = findMemberLocation(teams, memberData.id);
+                const teamLead = teams.find(team => team.id === location.teamId)?.lead || '';
                 const email = memberData.email || '';
                 const newFormData = {
                     id: memberData.id,
@@ -77,12 +79,14 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
                 } as typeof formData;
                 setFormData(newFormData);
                 setInitialFormData({...newFormData});
+                setAssignTeamLead(teamLead === memberData.name);
                 if (email.endsWith('@forcs.com')) {
                     setDisplayEmail(email.replace('@forcs.com', ''));
                 } else {
                     setDisplayEmail(email);
                 }
             } else if (context) { // For adding a new member
+                const teamLead = teams.find(team => team.id === context.teamId)?.lead || '';
                 const newFormData = {
                     id: '',
                     name: '',
@@ -97,10 +101,17 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
                 setFormData(newFormData);
                 setInitialFormData({...newFormData});
                 setDisplayEmail('');
+                setAssignTeamLead(!teamLead);
             }
             setKeepAdding(false);
         }
     }, [memberData, context, isOpen, teams]);
+
+    useEffect(() => {
+        if (formData.status === 'resigned' && assignTeamLead) {
+            setAssignTeamLead(false);
+        }
+    }, [formData.status, assignTeamLead]);
 
     if (!isOpen) return null;
 
@@ -144,11 +155,17 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
             submissionData.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(submissionData.name)}&background=random&color=fff`;
         }
         const shouldKeepOpen = !memberData && keepAdding;
+        const shouldAssignLead = assignTeamLead && submissionData.status !== 'resigned';
+        const teamLead = teams.find(team => team.id === formData.teamId)?.lead || '';
+        const memberWasLead = memberData ? teamLead === memberData.name : false;
+        const shouldClearLead = memberWasLead && !assignTeamLead;
         onSave(
             submissionData as Member & { teamId: string; partId: string },
             !!memberData,
             {
                 keepOpen: shouldKeepOpen,
+                setTeamLead: shouldAssignLead,
+                clearTeamLead: shouldClearLead,
                 onSuccess: () => {
                     if (shouldKeepOpen) {
                         const resetData = {
@@ -251,6 +268,15 @@ export const MemberActionModal: React.FC<MemberActionModalProps> = ({ isOpen, on
                                     <option value="resigned">퇴사</option>
                                 </select>
                             </div>
+                            <label className="flex items-center gap-2 text-sm text-slate-600">
+                                <Checkbox
+                                    checked={assignTeamLead}
+                                    indeterminate={false}
+                                    onChange={(e) => setAssignTeamLead(e.target.checked)}
+                                    disabled={formData.status === 'resigned'}
+                                />
+                                이 멤버를 팀장으로 지정
+                            </label>
                             {!memberData && (
                                 <label className="flex items-center gap-2 text-sm text-slate-600">
                                     <Checkbox

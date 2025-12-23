@@ -326,6 +326,9 @@ const OrganizationManagement = memo(() => {
         return filteredInactiveMembers;
     }, [filteredInactiveMembers, statusFilter]);
 
+    const showOnLeaveList = statusFilter !== 'resigned';
+    const showResignedList = statusFilter !== 'on_leave';
+
     const handleStatusFilter = useCallback((nextFilter: typeof statusFilter) => {
         setStatusFilter(prev => {
             const resolved = prev === nextFilter ? 'all' : nextFilter;
@@ -756,22 +759,26 @@ const OrganizationManagement = memo(() => {
 
                         {activeTab === 'inactive' && (
                             <div className="mobile-grid gap-4 sm:gap-6 lg:gap-8 items-start">
-                                <InactiveMemberList 
-                                    title="휴직중인 인원" 
-                                    type="on_leave" 
-                                    members={inactiveMembersToShow.onLeave} 
-                                    onReinstate={handleReinstateMember} 
-                                    onDelete={() => {}} 
-                                    baseDate={baseDate} 
-                                />
-                                <InactiveMemberList 
-                                    title="퇴사한 인원" 
-                                    type="resigned" 
-                                    members={inactiveMembersToShow.resigned} 
-                                    onDelete={handleDeleteResignedMember} 
-                                    onReinstate={() => {}} 
-                                    baseDate={baseDate} 
-                                />
+                                {showOnLeaveList && (
+                                    <InactiveMemberList 
+                                        title="휴직중인 인원" 
+                                        type="on_leave" 
+                                        members={inactiveMembersToShow.onLeave} 
+                                        onReinstate={handleReinstateMember} 
+                                        onDelete={() => {}} 
+                                        baseDate={baseDate} 
+                                    />
+                                )}
+                                {showResignedList && (
+                                    <InactiveMemberList 
+                                        title="퇴사한 인원" 
+                                        type="resigned" 
+                                        members={inactiveMembersToShow.resigned} 
+                                        onDelete={handleDeleteResignedMember} 
+                                        onReinstate={() => {}} 
+                                        baseDate={baseDate} 
+                                    />
+                                )}
                             </div>
                         )}
                     </>

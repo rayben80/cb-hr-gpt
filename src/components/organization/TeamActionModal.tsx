@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Icon, InputField } from '../common';
 import { ModalActions } from '../common/Button';
-import { ICONS } from '../../constants';
+import { ICONS, Team } from '../../constants';
 import { ConfirmationModal } from '../ConfirmationModal';
 
 interface TeamActionModalProps {
@@ -9,7 +9,7 @@ interface TeamActionModalProps {
     onClose: () => void;
     onSave: (data: { name: string, lead: string }) => void;
     mode: 'add' | 'edit';
-    initialData?: { id: string, name: string, lead: string } | null;
+    initialData?: Team | null;
 }
 
 export const TeamActionModal: React.FC<TeamActionModalProps> = ({ isOpen, onClose, onSave, mode, initialData = null }) => {
@@ -49,7 +49,7 @@ export const TeamActionModal: React.FC<TeamActionModalProps> = ({ isOpen, onClos
         return formData.name !== initialFormData.name || formData.lead !== initialFormData.lead;
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -101,6 +101,20 @@ export const TeamActionModal: React.FC<TeamActionModalProps> = ({ isOpen, onClos
 
     const title = mode === 'add' ? '새 팀 추가' : '팀 정보 수정';
 
+    const leaderOptions = useMemo(() => {
+        if (!initialData) return [];
+        const members = initialData.parts.flatMap(part =>
+            part.members
+                .filter(member => member.status === 'active' || member.status === 'intern')
+                .map(member => ({ value: member.name, label: `${member.name} · ${part.title}` }))
+        );
+        const hasCurrentLead = formData.lead && members.some(option => option.value === formData.lead);
+        if (formData.lead && !hasCurrentLead) {
+            return [{ value: formData.lead, label: `${formData.lead} (현재 팀장)` }, ...members];
+        }
+        return members;
+    }, [initialData, formData.lead]);
+
     return (
         <>
             <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={handleBackdropClick}>
@@ -122,15 +136,28 @@ export const TeamActionModal: React.FC<TeamActionModalProps> = ({ isOpen, onClos
                                 onChange={handleChange} 
                                 placeholder="팀 이름 입력" 
                             />
-                            <InputField 
-                                label="팀장" 
-                                id="lead" 
-                                name="lead" 
-                                type="text" 
-                                value={formData.lead} 
-                                onChange={handleChange} 
-                                placeholder="팀장 이름 입력" 
-                            />
+                            <div>
+                                <label htmlFor="lead" className="block text-sm font-medium text-slate-700 mb-1">팀장</label>
+                                <select
+                                    id="lead"
+                                    name="lead"
+                                    value={formData.lead}
+                                    onChange={handleChange}
+                                    className="block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
+                                    disabled={mode === 'add' || leaderOptions.length === 0}
+                                >
+                                    <option value="">팀장 미지정</option>
+                                    {leaderOptions.map(option => (
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    ))}
+                                </select>
+                                {mode === 'add' && (
+                                    <p className="text-xs text-slate-500 mt-2">팀을 만든 뒤 멤버를 추가하면 팀장을 지정할 수 있습니다.</p>
+                                )}
+                                {mode === 'edit' && leaderOptions.length === 0 && (
+                                    <p className="text-xs text-slate-500 mt-2">팀 멤버가 없어 팀장을 지정할 수 없습니다.</p>
+                                )}
+                            </div>
                         </div>
                         <div className="p-6 bg-slate-50 border-t border-slate-200">
                             <ModalActions
