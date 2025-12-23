@@ -24,6 +24,25 @@ const StatusBadge = memo(({ status }: { status: Evaluation['status'] }) => {
 
 StatusBadge.displayName = 'StatusBadge';
 
+const NoResultView = memo(({ onBack }: { onBack: () => void }) => (
+    <div className="bg-white p-8 rounded-xl shadow-sm">
+        <StatusCard
+            status="info"
+            title="평가 결과가 아직 준비되지 않았습니다."
+            description="평가가 완료된 후 결과 산출이 완료되면 확인할 수 있습니다."
+            action={
+                <button
+                    onClick={onBack}
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
+                >
+                    목록으로 돌아가기
+                </button>
+            }
+        />
+    </div>
+));
+
+NoResultView.displayName = 'NoResultView';
 
 
 const ScorePill = memo(({ label, score, weight, color }: { label: string, score: number, weight: number, color: { border: string, text: string } }) => (
@@ -114,6 +133,7 @@ const EvaluationManagement = memo(() => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedEvaluationId, setSelectedEvaluationId] = useState<number | string | null>(null);
+    const [resultUnavailable, setResultUnavailable] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     
     const [evaluationWeights, setEvaluationWeights] = useState({
@@ -125,12 +145,22 @@ const EvaluationManagement = memo(() => {
     
     const [networkState] = useNetworkStatus();
     const { showSuccess } = useError();
+    const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+    const normalizedEvaluations = useMemo(() => (
+        evaluations.map(e => {
+            if (e.status === '완료') return e;
+            if (e.endDate && e.endDate < today) return { ...e, status: '완료' as const };
+            if (e.startDate && e.startDate > today) return { ...e, status: '예정' as const };
+            return { ...e, status: '진행중' as const };
+        })
+    ), [evaluations, today]);
 
     // 성능 최적화: 필터링 로직 메모이제이션
     const filteredEvaluations = useMemo(() => {
         const baseEvaluations = activeTab === '전체'
-            ? evaluations
-            : evaluations.filter(e => e.status === activeTab);
+            ? normalizedEvaluations
+            : normalizedEvaluations.filter(e => e.status === activeTab);
 
         const query = searchTerm.trim().toLowerCase();
         if (!query) return baseEvaluations;
@@ -140,7 +170,7 @@ const EvaluationManagement = memo(() => {
             || e.type.toLowerCase().includes(query)
             || e.subject.toLowerCase().includes(query)
         ));
-    }, [activeTab, evaluations, searchTerm]);
+    }, [activeTab, normalizedEvaluations, searchTerm]);
 
     // 성능 최적화: 콜백 함수 메모이제이션
     const handleLaunchEvaluation = useCallback(async (newEvaluationData: Omit<Evaluation, 'id' | 'status' | 'progress' | 'score'>) => {
@@ -165,15 +195,14 @@ const EvaluationManagement = memo(() => {
     }, []);
     
     const handleViewResult = useCallback((evaluationId: string | number) => {
-        if (String(evaluationId) === String(evaluationResultData.evaluationId) ) {
-            setSelectedEvaluationId(evaluationId);
-        } else {
-            alert('이 평가에 대한 결과를 볼 수 없습니다. 데모 데이터만 사용 가능합니다.');
-        }
+        const hasResult = String(evaluationId) === String(evaluationResultData.evaluationId);
+        setResultUnavailable(!hasResult);
+        setSelectedEvaluationId(evaluationId);
     }, []);
 
     const handleBackToList = useCallback(() => {
         setSelectedEvaluationId(null);
+        setResultUnavailable(false);
     }, []);
 
     const handleSaveWeights = useCallback((newWeights: { firstHalf: number, secondHalf: number, peerReview: number }) => {
@@ -222,6 +251,9 @@ const EvaluationManagement = memo(() => {
     const tabs = useMemo(() => ['전체', '진행중', '완료', '예정'], []);
 
     if (selectedEvaluationId) {
+        if (resultUnavailable) {
+            return <NoResultView onBack={handleBackToList} />;
+        }
         return <EvaluationResult resultData={evaluationResultData} onBack={handleBackToList} />;
     }
 
@@ -239,7 +271,7 @@ const EvaluationManagement = memo(() => {
             </div>
             
             <AnnualScoreSummary 
-                evaluations={evaluations} 
+                evaluations={normalizedEvaluations} 
                 weights={evaluationWeights} 
                 onOpenSettings={handleOpenSettings} 
             />
@@ -308,7 +340,11 @@ const EvaluationManagement = memo(() => {
                                 {filteredEvaluations.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-500">
-                                            {searchTerm.trim() ? '검색 결과가 없습니다.' : '표시할 평가가 없습니다.'}
+                                            {searchTerm.trim()
+                                                ? '검색 결과가 없습니다.'
+                                                : activeTab === '완료'
+                                                    ? '완료된 평가가 없습니다.'
+                                                    : '표시할 평가가 없습니다.'}
                                         </td>
                                     </tr>
                                 ) : (
