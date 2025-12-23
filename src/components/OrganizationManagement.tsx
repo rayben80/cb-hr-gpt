@@ -26,9 +26,6 @@ import { HeadquarterActionModal } from './organization/HeadquarterActionModal';
 const OrganizationManagement = memo(() => {
     // UI 상태
     const [searchTerm, setSearchTerm] = useState('');
-    const [teamSearchTerm, setTeamSearchTerm] = useState(''); // 팀 이름 검색을 위한 상태
-    const [teamLeadSearchTerm, setTeamLeadSearchTerm] = useState(''); // 팀 리더 검색을 위한 상태
-    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false); // 고급 검색 옵션 표시 여부
     const [baseDate, setBaseDate] = useState(new Date().toISOString().split('T')[0]);
     const [activeTab, setActiveTab] = useState('orgChart');
     
@@ -209,7 +206,7 @@ const OrganizationManagement = memo(() => {
     const {
         activeTeams,
         filteredInactiveMembers
-    } = useOrganizationFilter(teams, searchTerm, teamSearchTerm, teamLeadSearchTerm);
+    } = useOrganizationFilter(teams, searchTerm);
     
     // 디버깅용 로그
     
@@ -496,30 +493,6 @@ const OrganizationManagement = memo(() => {
                                 className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all mobile-text" 
                             />
                         </div>
-                        {showAdvancedSearch && (
-                            <>
-                                <div className="relative flex-1">
-                                    <Icon path={ICONS.users} className="w-5 h-5 text-slate-400 absolute top-1/2 left-3 -translate-y-1/2 pointer-events-none" />
-                                    <input
-                                        type="text"
-                                        placeholder="팀 이름으로 검색..."
-                                        value={teamSearchTerm}
-                                        onChange={(e) => setTeamSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all mobile-text" 
-                                    />
-                                </div>
-                                <div className="relative flex-1">
-                                    <Icon path={ICONS.userCircle} className="w-5 h-5 text-slate-400 absolute top-1/2 left-3 -translate-y-1/2 pointer-events-none" />
-                                    <input
-                                        type="text"
-                                        placeholder="팀 리더로 검색..."
-                                        value={teamLeadSearchTerm}
-                                        onChange={(e) => setTeamLeadSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all mobile-text" 
-                                    />
-                                </div>
-                            </>
-                        )}
                         <div className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-3">
                             <Icon path={ICONS.calendar} className="w-5 h-5 text-slate-500" />
                             <label htmlFor="baseDate" className="font-semibold whitespace-nowrap">기준일:</label>
@@ -531,20 +504,6 @@ const OrganizationManagement = memo(() => {
                                 className="bg-transparent border-none text-slate-800 p-0 ml-1 focus:outline-none focus:ring-0 cursor-pointer"
                             />
                         </div>
-                    </div>
-                    
-                    {/* 고급 검색 토글 버튼 */}
-                    <div className="flex justify-end">
-                        <button
-                            onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                            className="flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
-                        >
-                            <Icon 
-                                path={showAdvancedSearch ? ICONS.chevronUp : ICONS.chevronDown} 
-                                className="w-4 h-4" 
-                            />
-                            {showAdvancedSearch ? '고급 검색 옵션 숨기기' : '고급 검색 옵션'}
-                        </button>
                     </div>
                     
                     {/* 액션 버튼들 */}
