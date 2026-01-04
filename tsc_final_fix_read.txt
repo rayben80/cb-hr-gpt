@@ -1,0 +1,19 @@
+src/components/organization/OrganizationMainContent.tsx(13,12): error TS2304: Cannot find name 'Team'.
+src/components/organization/OrganizationMainContent.tsx(14,19): error TS2304: Cannot find name 'Headquarter'.
+src/features/evaluation/CreateCampaignModal.tsx(110,22): error TS2345: Argument of type '{ name: string; type: string; period: string; subject: string; startDate: string; endDate: string; templateSnapshot: EvaluationTemplate; }' is not assignable to parameter of type 'LaunchData'.
+  Type '{ name: string; type: string; period: string; subject: string; startDate: string; endDate: string; templateSnapshot: EvaluationTemplate; }' is missing the following properties from type 'LaunchData': subjectId, subjectSnapshot
+src/pages/OrganizationManagement.tsx(11,14): error TS2322: Type '{ networkState: NetworkState; saveOperation: AsyncOperationState; deleteOperation: AsyncOperationState; seedOperation: AsyncOperationState; ... 44 more ...; handleBulkMove: (targetTeamId: string, targetPartId: string | null) => void; }' is not assignable to type 'OrganizationViewsProps'.
+  Types of property 'handleReinstateMember' are incompatible.
+    Type '(memberToReinstate: MemberWithLocation) => void' is not assignable to type '(member: Member) => Promise<void>'.
+      Types of parameters 'memberToReinstate' and 'member' are incompatible.
+        Type 'Member' is not assignable to type 'MemberWithLocation' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+          Types of property 'teamId' are incompatible.
+            Type 'string | undefined' is not assignable to type 'string'.
+              Type 'undefined' is not assignable to type 'string'.
+src/services/dashboardService.test.ts(69,5): error TS2739: Type '{ id: string; name: string; subject: string; status: "완료"; score: number; period: string; startDate: string; endDate: string; progress: number; type: string; }' is missing the following properties from type 'Evaluation': subjectId, subjectSnapshot
+src/services/dashboardService.test.ts(81,5): error TS2739: Type '{ id: string; name: string; subject: string; status: "완료"; score: number; period: string; startDate: string; endDate: string; progress: number; type: string; }' is missing the following properties from type 'Evaluation': subjectId, subjectSnapshot
+src/services/dashboardService.test.ts(93,5): error TS2739: Type '{ id: string; name: string; subject: string; status: "진행중"; score: null; period: string; startDate: string; endDate: string; progress: number; type: string; }' is missing the following properties from type 'Evaluation': subjectId, subjectSnapshot
+src/test/hooks/useMemberManagement.test.tsx(202,55): error TS2379: Argument of type 'Member' is not assignable to parameter of type 'MemberWithLocation' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'teamId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.

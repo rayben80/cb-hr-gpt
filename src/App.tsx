@@ -1,21 +1,59 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Sidebar, Header, SidebarPageKey } from './components/Layout';
-import Dashboard from './components/Dashboard';
-import OrganizationManagement from './components/OrganizationManagement';
-import EvaluationManagement from './components/EvaluationManagement';
-import EvaluationLibrary from './components/EvaluationLibrary';
-import SettingsPage from './components/SettingsPage';
-import { ErrorProvider } from './contexts/ErrorContext';
-import ErrorToast from './components/ErrorToast';
-import ErrorBoundary from './components/ErrorBoundary';
-import { ErrorLogModal } from './components/ErrorLogModal';
+import ErrorBoundary from '@/components/feedback/ErrorBoundary';
+import { ErrorLogModal } from '@/components/feedback/ErrorLogModal';
+import ErrorToast from '@/components/feedback/ErrorToast';
+import { Layout, SidebarPageKey } from '@/components/layout/Layout';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ErrorProvider } from '@/contexts/ErrorContext';
+import { RoleProvider, useRole } from '@/contexts/RoleContext';
+import Dashboard from '@/pages/Dashboard';
+import EvaluationLibrary from '@/pages/EvaluationLibrary';
+import EvaluationManagement from '@/pages/EvaluationManagement';
+import Login from '@/pages/Login';
+import OrganizationManagement from '@/pages/OrganizationManagement';
+import SettingsPage from '@/pages/SettingsPage';
+import { QueryProvider } from '@/providers/QueryProvider';
+import { Toaster } from '@/utils/toast';
+import { useCallback, useEffect, useState } from 'react';
 
 const App = () => {
-    const [isSidebarOpen, setSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth > 1024 : true));
+    return (
+        <ErrorBoundary>
+            <QueryProvider>
+                <ErrorProvider>
+                    <AuthProvider>
+                        <RoleProvider>
+                            <AppContent />
+                            <Toaster position="top-right" richColors />
+                        </RoleProvider>
+                    </AuthProvider>
+                </ErrorProvider>
+            </QueryProvider>
+        </ErrorBoundary>
+    );
+};
+
+const AppContent = () => {
+    const { currentUser, loading } = useAuth();
+    const { role } = useRole();
+    const [isSidebarOpen, setSidebarOpen] = useState(() =>
+        typeof window !== 'undefined' ? window.innerWidth > 1024 : true
+    );
     const [activePage, setActivePage] = useState<SidebarPageKey>('evaluation');
     const [isErrorLogOpen, setIsErrorLogOpen] = useState(false);
 
     const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
+
+    // Redirect if accessing restricted pages as USER
+    useEffect(() => {
+        if (role === 'USER') {
+            const restrictedPages: SidebarPageKey[] = ['dashboard', 'organization', 'library'];
+            if (restrictedPages.includes(activePage)) {
+                setActivePage('evaluation');
+            }
+        }
+        // HQ_LEADER and TEAM_LEADER have access to all pages
+        // Specific data filtering is handled in individual components
+    }, [role, activePage]);
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -48,24 +86,28 @@ const App = () => {
         }
     }, [activePage]);
 
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    }
+
+    if (!currentUser) {
+        return <Login />;
+    }
+
     return (
-        <ErrorBoundary>
-            <ErrorProvider>
-                <div className="flex h-screen bg-slate-100 font-sans text-slate-800">
-                    <Sidebar isOpen={isSidebarOpen} activePage={activePage} onNavigate={(page) => setActivePage(page)} />
-                    <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header onMenuClick={toggleSidebar} onErrorLogClick={() => setIsErrorLogOpen(true)} />
-                        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-100 p-8">
-                            <ErrorBoundary>
-                                {renderPage()}
-                            </ErrorBoundary>
-                        </main>
-                    </div>
-                    <ErrorToast />
-                    <ErrorLogModal isOpen={isErrorLogOpen} onClose={() => setIsErrorLogOpen(false)} />
-                </div>
-            </ErrorProvider>
-        </ErrorBoundary>
+        <>
+            <Layout
+                isSidebarOpen={isSidebarOpen}
+                onToggleSidebar={toggleSidebar}
+                activePage={activePage}
+                onNavigate={(page) => setActivePage(page)}
+                onErrorLogClick={() => setIsErrorLogOpen(true)}
+            >
+                <ErrorBoundary>{renderPage()}</ErrorBoundary>
+            </Layout>
+            <ErrorToast />
+            <ErrorLogModal isOpen={isErrorLogOpen} onClose={() => setIsErrorLogOpen(false)} />
+        </>
     );
 };
 

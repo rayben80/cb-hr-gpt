@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import { Icon } from '../common';
-import { ICONS, Team, Member } from '../../constants';
+import { X } from '@phosphor-icons/react';
+import React, { memo, useCallback, useState } from 'react';
+import { Member, Team } from '../../constants';
 
 interface MemberMoveModalProps {
     isOpen: boolean;
@@ -10,47 +10,140 @@ interface MemberMoveModalProps {
     teams: Team[];
 }
 
-export const MemberMoveModal: React.FC<MemberMoveModalProps> = ({ 
-    isOpen, 
-    onClose, 
-    onMove,
-    member,
-    teams
-}) => {
-    console.log('MemberMoveModal rendered with:', { isOpen, member, teams });
-    
+const MemberPreview = memo(({ member }: { member: Member }) => (
+    <div className="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-lg">
+        <img className="h-12 w-12 rounded-full object-cover" src={member.avatar} alt={`${member.name} avatar`} />
+        <div>
+            <p className="font-semibold text-slate-800">{member.name}</p>
+            <p className="text-sm text-slate-500">{member.role}</p>
+        </div>
+    </div>
+));
+MemberPreview.displayName = 'MemberPreview';
+
+const TeamSelector = memo(
+    ({ teams, value, onChange }: { teams: Team[]; value: string; onChange: (teamId: string) => void }) => (
+        <div>
+            <label htmlFor="team-selector" className="block text-sm font-medium text-slate-700 mb-2">
+                이동할 팀
+            </label>
+            <select
+                id="team-selector"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+            >
+                <option value="">팀을 선택하세요</option>
+                {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                        {team.name}
+                    </option>
+                ))}
+            </select>
+        </div>
+    )
+);
+TeamSelector.displayName = 'TeamSelector';
+
+const PartSelector = memo(
+    ({
+        parts,
+        value,
+        onChange,
+        disabled,
+    }: {
+        parts: Array<{ id: string; title: string }>;
+        value: string;
+        onChange: (partId: string) => void;
+        disabled: boolean;
+    }) => (
+        <div>
+            <label htmlFor="part-selector" className="block text-sm font-medium text-slate-700 mb-2">
+                이동할 파트
+            </label>
+            <select
+                id="part-selector"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                disabled={disabled}
+            >
+                <option value="">파트를 선택하세요</option>
+                <option value="DIRECT">팀 직속</option>
+                {parts.map((part) => (
+                    <option key={part.id} value={part.id}>
+                        {part.title}
+                    </option>
+                ))}
+            </select>
+        </div>
+    )
+);
+PartSelector.displayName = 'PartSelector';
+
+const ActionButtons = memo(
+    ({ onCancel, onConfirm, disabled }: { onCancel: () => void; onConfirm: () => void; disabled: boolean }) => (
+        <div className="flex gap-3 mt-8">
+            <button
+                onClick={onCancel}
+                className="flex-1 px-4 py-3 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors"
+            >
+                취소
+            </button>
+            <button
+                onClick={onConfirm}
+                disabled={disabled}
+                className={`flex-1 px-4 py-3 text-white rounded-lg font-medium transition-colors ${
+                    !disabled ? 'bg-primary hover:bg-primary/90' : 'bg-slate-300 cursor-not-allowed'
+                }`}
+            >
+                이동
+            </button>
+        </div>
+    )
+);
+ActionButtons.displayName = 'ActionButtons';
+
+export const MemberMoveModal: React.FC<MemberMoveModalProps> = ({ isOpen, onClose, onMove, member, teams }) => {
     const [selectedTeamId, setSelectedTeamId] = useState<string>('');
     const [selectedPartId, setSelectedPartId] = useState<string>('');
 
-    // 팀 선택 시 파트 목록 업데이트
+    // Initialize state when member changes
+    React.useEffect(() => {
+        if (member && isOpen) {
+            setSelectedTeamId(member.teamId || '');
+            // If member is in a team but no part (and logic implies direct), set to DIRECT.
+            // If member.partId is present, set it.
+            // If member has no team (unlikely in this context?), empty.
+            setSelectedPartId(member.partId || (member.teamId ? 'DIRECT' : ''));
+        }
+    }, [member, isOpen]);
+
     const handleTeamChange = useCallback((teamId: string) => {
         setSelectedTeamId(teamId);
         setSelectedPartId('');
     }, []);
 
-    // 이동 처리
     const handleMove = useCallback(() => {
         if (member && selectedTeamId && selectedPartId) {
-            onMove(member.id, selectedTeamId, selectedPartId);
+            // If 'DIRECT', send empty string as partId
+            const finalPartId = selectedPartId === 'DIRECT' ? '' : selectedPartId;
+            onMove(member.id, selectedTeamId, finalPartId);
             onClose();
         }
     }, [member, selectedTeamId, selectedPartId, onMove, onClose]);
 
-    // 모달 외부 클릭 시 닫기
     const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
+        if (e.target === e.currentTarget) onClose();
     };
 
     if (!isOpen || !member) return null;
 
-    // 선택된 팀의 파트 목록
-    const selectedTeam = teams.find(team => team.id === selectedTeamId);
+    const selectedTeam = teams.find((team) => team.id === selectedTeamId);
     const parts = selectedTeam ? selectedTeam.parts : [];
 
     return (
-        <div 
+        <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
             onClick={handleBackdropClick}
         >
@@ -58,86 +151,31 @@ export const MemberMoveModal: React.FC<MemberMoveModalProps> = ({
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-bold text-slate-900">멤버 이동</h2>
-                        <button 
+                        <button
                             onClick={onClose}
                             className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                            aria-label="닫기"
                         >
-                            <Icon path={ICONS.xMark} className="w-5 h-5" />
+                            <X className="w-5 h-5" weight="regular" />
                         </button>
                     </div>
-
-                    <div className="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-lg">
-                        <img 
-                            className="h-12 w-12 rounded-full object-cover" 
-                            src={member.avatar} 
-                            alt={`${member.name} avatar`} 
-                        />
-                        <div>
-                            <p className="font-semibold text-slate-800">{member.name}</p>
-                            <p className="text-sm text-slate-500">{member.role}</p>
-                        </div>
-                    </div>
-
+                    <MemberPreview member={member} />
                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                이동할 팀
-                            </label>
-                            <select
-                                value={selectedTeamId}
-                                onChange={(e) => handleTeamChange(e.target.value)}
-                                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
-                            >
-                                <option value="">팀을 선택하세요</option>
-                                {teams.map(team => (
-                                    <option key={team.id} value={team.id}>
-                                        {team.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
+                        <TeamSelector teams={teams} value={selectedTeamId} onChange={handleTeamChange} />
                         {selectedTeamId && (
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
-                                    이동할 파트
-                                </label>
-                                <select
-                                    value={selectedPartId}
-                                    onChange={(e) => setSelectedPartId(e.target.value)}
-                                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
-                                    disabled={!selectedTeamId}
-                                >
-                                    <option value="">파트를 선택하세요</option>
-                                    {parts.map(part => (
-                                        <option key={part.id} value={part.id}>
-                                            {part.title}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                            <PartSelector
+                                parts={parts}
+                                value={selectedPartId}
+                                onChange={setSelectedPartId}
+                                disabled={!selectedTeamId}
+                            />
                         )}
                     </div>
-
-                    <div className="flex gap-3 mt-8">
-                        <button
-                            onClick={onClose}
-                            className="flex-1 px-4 py-3 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors"
-                        >
-                            취소
-                        </button>
-                        <button
-                            onClick={handleMove}
-                            disabled={!selectedTeamId || !selectedPartId}
-                            className={`flex-1 px-4 py-3 text-white rounded-lg font-medium transition-colors ${
-                                selectedTeamId && selectedPartId
-                                    ? 'bg-sky-500 hover:bg-sky-600'
-                                    : 'bg-slate-300 cursor-not-allowed'
-                            }`}
-                        >
-                            이동
-                        </button>
-                    </div>
+                    <ActionButtons
+                        onCancel={onClose}
+                        onConfirm={handleMove}
+                        disabled={!selectedTeamId || !selectedPartId}
+                    />
                 </div>
             </div>
         </div>

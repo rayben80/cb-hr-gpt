@@ -1,0 +1,98 @@
+
+D:\cb-hr-gpt\src\features\evaluation\EvaluationExecution.tsx
+  172:8  warning  React Hook useEffect has a missing dependency: 'answers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\cb-hr-gpt\src\features\template\TemplateEditor.tsx
+  22:5  warning  Arrow function has too many lines (159). Maximum allowed is 150  max-lines-per-function
+  33:8  warning  Arrow function has a complexity of 17. Maximum allowed is 15     complexity
+
+D:\cb-hr-gpt\src\features\template\components\TemplateEditorHeader.tsx
+  23:5  warning  Arrow function has too many lines (180). Maximum allowed is 150  max-lines-per-function
+
+D:\cb-hr-gpt\src\features\template\hooks\useItemDragDrop.ts
+  16:35  warning  'items' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\cb-hr-gpt\src\features\template\hooks\useItemPresets.ts
+  108:35  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  109:47  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+
+D:\cb-hr-gpt\src\hooks\common\useKeyboardNavigation.ts
+  29:50  warning  Arrow function has a complexity of 19. Maximum allowed is 15  complexity
+
+D:\cb-hr-gpt\src\hooks\evaluation\useEvaluationData.ts
+  97:39  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+
+D:\cb-hr-gpt\src\hooks\library\useTemplateArchive.ts
+   32:42  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+   71:42  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  109:53  warning  '_' is assigned a value but never used               @typescript-eslint/no-unused-vars
+
+D:\cb-hr-gpt\src\hooks\library\useTemplateCrud.ts
+  14:29  warning  '_' is assigned a value but never used               @typescript-eslint/no-unused-vars
+  36:38  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  90:29  warning  'id' is assigned a value but never used              @typescript-eslint/no-unused-vars
+
+D:\cb-hr-gpt\src\hooks\organization\memberStateUtils.ts
+  111:29  warning  Arrow function has a complexity of 22. Maximum allowed is 15  complexity
+
+D:\cb-hr-gpt\src\hooks\organization\useOrganizationData.ts
+  122:38  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+
+D:\cb-hr-gpt\src\hooks\organization\useOrganizationFilter.ts
+  19:58  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  26:67  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  28:41  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  51:62  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+
+D:\cb-hr-gpt\src\hooks\organization\useOrganizationModals.ts
+  51:53  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  52:64  warning  Too many nested callbacks (5). Maximum allowed is 3  max-nested-callbacks
+  77:47  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  79:72  warning  Too many nested callbacks (5). Maximum allowed is 3  max-nested-callbacks
+
+D:\cb-hr-gpt\src\hooks\organization\usePartActions.ts
+  76:66  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  81:54  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  82:89  warning  Too many nested callbacks (5). Maximum allowed is 3  max-nested-callbacks
+
+D:\cb-hr-gpt\src\hooks\organization\useTeamActions.ts
+   56:43  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+   97:69  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  100:37  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+  106:71  warning  Too many nested callbacks (4). Maximum allowed is 3  max-nested-callbacks
+
+D:\cb-hr-gpt\src\pages\EvaluationManagement.tsx
+  18:35  warning  Arrow function has too many lines (168). Maximum allowed is 150  max-lines-per-function
+
+D:\cb-hr-gpt\src\pages\OrganizationManagement.tsx
+  16:37  warning  Arrow function has too many lines (210). Maximum allowed is 150  max-lines-per-function
+
+D:\cb-hr-gpt\src\pages\library\LibraryViews.tsx
+  67:9  warning  'setView' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\cb-hr-gpt\src\test\components\Member.test.tsx
+   17:30  warning  Arrow function has too many lines (159). Maximum allowed is 150  max-lines-per-function
+  232:26  warning  '_' is assigned a value but never used                           @typescript-eslint/no-unused-vars
+  232:40  warning  '__' is assigned a value but never used                          @typescript-eslint/no-unused-vars
+
+D:\cb-hr-gpt\src\test\components\PartSection.test.tsx
+  42:35  warning  Arrow function has too many lines (199). Maximum allowed is 150  max-lines-per-function
+
+D:\cb-hr-gpt\src\test\components\TeamCard.test.tsx
+  40:32  warning  Arrow function has too many lines (169). Maximum allowed is 150  max-lines-per-function
+
+D:\cb-hr-gpt\src\test\hooks\useMemberManagement.test.tsx
+  40:38  warning  Arrow function has too many lines (226). Maximum allowed is 150  max-lines-per-function
+
+D:\cb-hr-gpt\src\test\setup.ts
+  62:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+D:\cb-hr-gpt\src\test\utils\logger.test.ts
+  17:25  warning  Arrow function has too many lines (154). Maximum allowed is 150  max-lines-per-function
+
+D:\cb-hr-gpt\src\utils\templateIO.ts
+  97:22  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+??44 problems (0 errors, 44 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

@@ -1,156 +1,379 @@
-import React, { memo, useMemo, useCallback, useState } from 'react';
-import { Icon, Dropdown, DropdownItem } from '../common';
-import { ICONS, Team, Member, Part } from '../../constants';
+/* eslint-disable max-lines-per-function */
+/* eslint-disable max-nested-callbacks */
+import React, { memo, useCallback, useMemo, useState } from 'react';
+import { Member as MemberType, Part, Team } from '../../constants';
+import { ConfirmationActions } from '../../hooks/common/useConfirmation';
+import { calculateTotalTeamMembers } from '../../utils/organizationUtils';
+import { DEFAULT_MEMBER_ROLE, normalizeMemberRole } from '../../utils/memberRoleUtils';
+import { Avatar, AvatarGroup, Badge, Card, Modal } from '../common';
+import { Member } from './Member';
 import { PartSection } from './PartSection';
+import { TeamCardHeader } from './TeamCardHeader';
+
+// --- Color Themes ---
+const TEAM_COLOR_THEMES = [
+    {
+        border: 'border-l-cyan-600',
+        badge: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200 border-cyan-200',
+        partIndicator: 'bg-cyan-400',
+    },
+    {
+        border: 'border-l-teal-500',
+        badge: 'bg-teal-100 text-teal-700 hover:bg-teal-200 border-teal-200',
+        partIndicator: 'bg-teal-400',
+    },
+    {
+        border: 'border-l-amber-500',
+        badge: 'bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200',
+        partIndicator: 'bg-amber-400',
+    },
+    {
+        border: 'border-l-rose-500',
+        badge: 'bg-rose-100 text-rose-700 hover:bg-rose-200 border-rose-200',
+        partIndicator: 'bg-rose-400',
+    },
+    {
+        border: 'border-l-emerald-500',
+        badge: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200',
+        partIndicator: 'bg-emerald-400',
+    },
+    {
+        border: 'border-l-indigo-500',
+        badge: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-indigo-200',
+        partIndicator: 'bg-indigo-400',
+    },
+    {
+        border: 'border-l-violet-500',
+        badge: 'bg-violet-100 text-violet-700 hover:bg-violet-200 border-violet-200',
+        partIndicator: 'bg-violet-400',
+    },
+];
+
+// --- Sub-components ---
+const MemberAvatarGroup = memo(
+    ({ members, limit = 5, onViewAll }: { members: MemberType[]; limit?: number; onViewAll?: () => void }) => {
+        if (!members.length) return <div className="text-xs text-muted-foreground">구성원 없음</div>;
+        const hasMore = members.length > limit;
+        return (
+            <div className="flex items-center gap-2">
+                <AvatarGroup limit={limit}>
+                    {members.map((m) => (
+                        <Avatar
+                            key={m.id}
+                            src={m.avatar}
+                            fallback={m.name}
+                            alt={m.name}
+                            title={`${m.name} (${m.role})`}
+                        />
+                    ))}
+                </AvatarGroup>
+                {hasMore && onViewAll && (
+                    <button
+                        onClick={onViewAll}
+                        className="text-xs text-primary hover:text-primary/80 hover:underline whitespace-nowrap"
+                    >
+                        전체 보기
+                    </button>
+                )}
+            </div>
+        );
+    }
+);
+
+const PartChipList = memo(({ parts, badgeStyle }: { parts: Part[]; badgeStyle: string }) => {
+    if (!parts.length) return null;
+    return (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+            {parts.map((part) => (
+                <Badge key={part.id} variant="outline" className={`border ${badgeStyle}`}>
+                    {part.title}
+                </Badge>
+            ))}
+        </div>
+    );
+});
+
+import { SaveMemberOptions } from '../../hooks/organization/useMemberOperations';
 
 interface TeamCardProps {
     team: Team;
     onAddMember: (teamId: string, partId: string) => void;
-    onEditMember: (member: Member) => void;
-    onDeleteMember: (member: Member) => void;
+    onEditMember: (member: MemberType) => void;
+    onDeleteMember: (member: MemberType) => void;
     onDropMemberInPart: (memberId: string, teamId: string, partId: string) => void;
     onAddPart: (teamId: string) => void;
     onEditPart: (teamId: string, part: Part) => void;
     onDeletePart: (teamId: string, partId: string) => void;
     onEditTeam: (team: Team) => void;
     onDeleteTeam: (teamId: string) => void;
-    onMoveMember: (member: Member) => void;
+
+    onUpdateTeam: (teamId: string, updates: Partial<Team>) => void;
+    onUpdateMember: (member: MemberType, isEditing: boolean, options?: SaveMemberOptions) => Promise<void>;
+    onMoveMember: (member: MemberType) => void;
+    confirmationActions: ConfirmationActions;
     searchTerm: string;
     isFiltered?: boolean;
     baseDate: string;
 }
 
-export const TeamCard: React.FC<TeamCardProps> = memo(({ 
-    team, 
-    onAddMember, 
-    onEditMember, 
-    onDeleteMember, 
-    onDropMemberInPart, 
-    onAddPart, 
-    onEditPart, 
-    onDeletePart, 
-    onEditTeam, 
-    onDeleteTeam, 
-    onMoveMember,
-    searchTerm, 
-    isFiltered = false,
-    baseDate
-}) => {
-    // 디버깅 로그 추가
-    console.log('TeamCard rendered with team:', team);
-    
-    // 팀 카드 접기/펼치기 상태
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    
-    // 성능 최적화: 계산값들을 메모이제이션
-    const { memberCountText, isTeamEmpty, shouldRender } = useMemo(() => {
-        const filtered = team.parts.reduce((sum, part) => sum + part.members.length, 0);
-        const original = team.originalTotalMemberCount || 0;
-        const isFiltering = Boolean(searchTerm) || isFiltered;
-        const countText = isFiltering ? `${filtered} / ${original}` : original.toString();
-        const isEmpty = original === 0;
-        const shouldShow = isFiltering ? filtered > 0 : team.parts.length > 0;
-        
-        console.log('TeamCard render conditions:', {
-            teamId: team.id,
-            teamName: team.name,
-            searchTerm,
-            isFiltered,
-            filteredMembers: filtered,
-            originalMembers: original,
-            partsCount: team.parts.length,
-            shouldShow
-        });
-        
-        return {
-            memberCountText: countText,
-            isTeamEmpty: isEmpty,
-            shouldRender: shouldShow
-        };
-    }, [team.parts, team.originalTotalMemberCount, searchTerm, isFiltered]);
+export const TeamCard: React.FC<TeamCardProps> = memo(
+    ({
+        team,
+        onAddMember,
+        onEditMember,
+        onDeleteMember,
+        onDropMemberInPart,
+        onAddPart,
+        onEditPart,
+        onDeletePart,
+        onEditTeam,
+        onDeleteTeam,
+        onUpdateTeam,
+        onUpdateMember,
+        onMoveMember,
+        confirmationActions,
+        searchTerm,
+        isFiltered = false,
+        baseDate,
+    }) => {
+        const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // 최적화: 콜백 함수들을 메모이제이션
-    const handleEditTeam = useCallback(() => onEditTeam(team), [onEditTeam, team]);
-    const handleDeleteTeam = useCallback(() => {
-        console.log('TeamCard handleDeleteTeam called with teamId:', team.id);
-        onDeleteTeam(team.id);
-    }, [onDeleteTeam, team.id]);
-    const handleAddPart = useCallback(() => onAddPart(team.id), [onAddPart, team.id]);
-    
-    // 팀 카드 접기/펼치기 토글 함수
-    const toggleCollapse = useCallback(() => {
-        setIsCollapsed(prev => !prev);
-    }, []);
+        const { memberCountText, isTeamEmpty, shouldRender, allMembers, directMembers, theme } = useMemo(() => {
+            const directMembersList = team.members || [];
+            const filtered = calculateTotalTeamMembers(team);
+            const original = team.originalTotalMemberCount || 0;
+            const isFiltering = Boolean(searchTerm) || isFiltered;
 
-    // shouldRender 조건 확인
-    if (!shouldRender) {
-        console.log('TeamCard not rendering for team:', team.id);
-        return null;
+            // Generate deterministic theme based on team ID
+            const themeIndex =
+                team.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % TEAM_COLOR_THEMES.length;
+
+            return {
+                memberCountText: isFiltering ? `${filtered} / ${original}` : original.toString(),
+                isTeamEmpty: original === 0,
+                shouldRender: isFiltering ? filtered > 0 : true,
+                allMembers: [...directMembersList, ...team.parts.flatMap((p) => p.members)],
+                directMembers: directMembersList.filter((m) => m.status !== 'resigned' && m.status !== 'on_leave'),
+                theme: TEAM_COLOR_THEMES[themeIndex],
+            };
+        }, [team, searchTerm, isFiltered]);
+
+        // Fallback: If no explicit team lead is set, try to find a member with '팀장' in their role Or 'Lead'
+        const derivedTeamLead = useMemo(() => {
+            if (team.lead) return team.lead;
+            const potentialLead = allMembers.find(
+                (m) => m.role.includes('팀장') || m.role.toLowerCase().includes('team lead')
+            );
+            return potentialLead ? potentialLead.name : '';
+        }, [team.lead, allMembers]);
+
+        const handleEditTeam = useCallback(() => onEditTeam(team), [onEditTeam, team]);
+        const handleDeleteTeam = useCallback(() => onDeleteTeam(team.id), [onDeleteTeam, team.id]);
+        const handleAddPart = useCallback(() => onAddPart(team.id), [onAddPart, team.id]);
+        const handleAddDirectMember = useCallback(() => onAddMember(team.id, ''), [onAddMember, team.id]);
+        const toggleCollapse = useCallback(() => setIsCollapsed((prev) => !prev), []);
+
+        const handleAssignTeamLead = useCallback(
+            (member: MemberType) => {
+                confirmationActions.showConfirmation({
+                    title: '팀장 임명',
+                    message: `${member.name}님을 ${team.name}의 팀장으로 임명하시겠습니까?`,
+                    confirmButtonText: '임명',
+                    confirmButtonColor: 'primary',
+                    onConfirm: async () => {
+                        // Find partId if not present
+                        let actualPartId = member.partId;
+                        if (actualPartId === undefined || actualPartId === null) {
+                            const part = team.parts.find((p) => p.members.some((m) => m.id === member.id));
+                            actualPartId = part?.id ?? undefined;
+                        }
+
+                        // Update Team Lead property
+                        onUpdateTeam(team.id, { lead: member.name });
+
+                        // Update Member Role to "팀장"
+                        const newRole = '팀장';
+                        const nextRoleBeforeLead =
+                            member.role === '팀장' ? member.roleBeforeLead : normalizeMemberRole(member.role);
+                        if (member.role !== newRole) {
+                            await onUpdateMember(
+                                {
+                                    ...member,
+                                    role: newRole,
+                                    roleBeforeLead: nextRoleBeforeLead,
+                                    teamId: team.id,
+                                    partId: actualPartId ?? '',
+                                } as any,
+                                true,
+                                { keepOpen: false }
+                            );
+                        }
+                    },
+                });
+            },
+            [team.id, team.name, team.parts, onUpdateTeam, onUpdateMember, confirmationActions]
+        );
+
+        const handleRemoveTeamLead = useCallback(
+            (member: MemberType) => {
+                confirmationActions.showConfirmation({
+                    title: '팀장 해임',
+                    message: `${member.name}님의 팀장 직책을 해제하시겠습니까?`,
+                    confirmButtonText: '해임',
+                    confirmButtonColor: 'destructive',
+                    onConfirm: async () => {
+                        // Find partId if not present
+                        let actualPartId = member.partId;
+                        let targetPart = null;
+                        if (actualPartId === undefined || actualPartId === null) {
+                            targetPart = team.parts.find((p) => p.members.some((m) => m.id === member.id));
+                            actualPartId = targetPart?.id ?? undefined;
+                        } else {
+                            targetPart = team.parts.find((p) => p.id === actualPartId);
+                        }
+
+                        // Clear Team Lead property
+                        onUpdateTeam(team.id, { lead: '' });
+
+                        // Restore Member Role to default
+                        const restoredRole = member.roleBeforeLead
+                            ? normalizeMemberRole(member.roleBeforeLead)
+                            : DEFAULT_MEMBER_ROLE;
+                        const newRole = restoredRole === '팀장' ? DEFAULT_MEMBER_ROLE : restoredRole;
+
+                        await onUpdateMember(
+                            {
+                                ...member,
+                                role: newRole,
+                                roleBeforeLead: undefined,
+                                teamId: team.id,
+                                partId: actualPartId ?? '',
+                            } as any,
+                            true,
+                            { keepOpen: false }
+                        );
+                    },
+                });
+            },
+            [team.id, team.parts, onUpdateTeam, onUpdateMember, confirmationActions]
+        );
+
+        // Member list modal
+        const [showMemberList, setShowMemberList] = useState(false);
+        const handleViewAllMembers = useCallback(() => setShowMemberList(true), []);
+
+        if (!shouldRender) return null;
+
+        return (
+            <>
+                <Card
+                    className={`border-l-4 ${theme.border} p-3 sm:p-4 rounded-xl space-y-2 flex flex-col h-full hover:shadow-primary-lg`}
+                    hoverEffect
+                >
+                    <TeamCardHeader
+                        teamName={team.name}
+                        memberCountText={memberCountText}
+                        teamLead={derivedTeamLead}
+                        isTeamEmpty={isTeamEmpty}
+                        isCollapsed={isCollapsed}
+                        onAddPart={handleAddPart}
+                        onAddDirectMember={handleAddDirectMember}
+                        onToggleCollapse={toggleCollapse}
+                        onEditTeam={handleEditTeam}
+                        onDeleteTeam={handleDeleteTeam}
+                    />
+                    <div className="px-2 pb-2">
+                        <MemberAvatarGroup members={allMembers} onViewAll={handleViewAllMembers} />
+                        <PartChipList parts={team.parts} badgeStyle={theme.badge} />
+                    </div>
+                    {!isCollapsed && (
+                        <div className="space-y-1 sm:space-y-2 flex-grow">
+                            {/* Direct team members section */}
+                            {directMembers.length > 0 && (
+                                <div className="p-2 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${theme.partIndicator}`} />
+                                        <span className="text-xs font-medium text-slate-600">팀 직속</span>
+                                        <Badge variant="outline" className="text-xs px-1.5 py-0">
+                                            {directMembers.length}명
+                                        </Badge>
+                                    </div>
+                                    <div className="divide-y divide-border/50 border-t border-slate-200/50 mt-1">
+                                        {directMembers.map((member) => (
+                                            <Member
+                                                key={member.id}
+                                                member={member}
+                                                onEdit={onEditMember}
+                                                onDelete={onDeleteMember}
+                                                onMove={onMoveMember}
+                                                baseDate={baseDate}
+                                                isTeamLead={derivedTeamLead === member.name}
+                                                onAssignTeamLead={handleAssignTeamLead}
+                                                onRemoveTeamLead={handleRemoveTeamLead}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {team.parts.map((part) => (
+                                <PartSection
+                                    key={part.id}
+                                    part={part}
+                                    teamId={team.id}
+                                    onAddMember={onAddMember}
+                                    onEditMember={onEditMember}
+                                    onDeleteMember={onDeleteMember}
+                                    onDropMemberInPart={onDropMemberInPart}
+                                    onEditPart={onEditPart}
+                                    onDeletePart={onDeletePart}
+                                    onMoveMember={onMoveMember}
+                                    onAssignTeamLead={handleAssignTeamLead}
+                                    onRemoveTeamLead={handleRemoveTeamLead}
+                                    searchTerm={searchTerm}
+                                    baseDate={baseDate}
+                                    indicatorColor={theme.partIndicator}
+                                    {...(derivedTeamLead && { teamLead: derivedTeamLead })}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </Card>
+
+                {/* Member List Modal */}
+                <Modal
+                    open={showMemberList}
+                    onOpenChange={setShowMemberList}
+                    title={`${team.name} 구성원 (${allMembers.length}명)`}
+                >
+                    <div className="max-h-[60vh] overflow-y-auto">
+                        <div className="divide-y divide-border">
+                            {allMembers.map((member) => (
+                                <div
+                                    key={member.id}
+                                    className="flex items-center gap-3 py-3 px-2 hover:bg-slate-50 rounded-lg cursor-pointer"
+                                    onClick={() => {
+                                        onEditMember(member);
+                                        setShowMemberList(false);
+                                    }}
+                                >
+                                    <Avatar src={member.avatar} fallback={member.name} alt={member.name} />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-medium text-sm truncate">{member.name}</div>
+                                        <div className="text-xs text-muted-foreground truncate">{member.role}</div>
+                                    </div>
+                                    {derivedTeamLead === member.name && (
+                                        <Badge variant="secondary" className="text-xs">
+                                            팀장
+                                        </Badge>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </Modal>
+            </>
+        );
     }
-
-    return (
-        <div 
-            className="bg-white p-3 sm:p-4 rounded-xl shadow-sm space-y-2 flex flex-col h-full transition-all duration-200"
-        >
-            <div className="flex items-start sm:items-center justify-between px-1 sm:px-2 py-1 gap-2">
-                <div className="flex-1 min-w-0">
-                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 truncate">{team.name} ({memberCountText}명)</h2>
-                    <p className="text-xs sm:text-sm text-slate-500 mt-1 truncate">팀장: {team.lead}</p>
-                </div>
-                <div className="flex-shrink-0 flex items-center gap-1">
-                    <button
-                        onClick={handleAddPart}
-                        className="flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-full px-2 py-1 sm:px-3 sm:py-1.5 transition-colors touch-manipulation"
-                    >
-                        <Icon path={ICONS.plus} className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">파트 추가</span>
-                    </button>
-                    <button 
-                        onClick={toggleCollapse}
-                        className="p-2 text-slate-500 hover:bg-slate-200 rounded-full transition-colors touch-manipulation"
-                    >
-                        <Icon 
-                            path={isCollapsed ? ICONS.chevronDown : ICONS.chevronUp} 
-                            className="w-5 h-5" 
-                        />
-                    </button>
-                    <Dropdown trigger={<button className="p-2 text-slate-500 hover:bg-slate-200 rounded-full transition-colors touch-manipulation"><Icon path={ICONS.moreHorizontal} className="w-5 h-5" /></button>}>
-                        <DropdownItem onClick={handleEditTeam}>
-                            <Icon path={ICONS.pencil} className="w-4 h-4 mr-2" /> 팀 정보 수정
-                        </DropdownItem>
-                        <DropdownItem 
-                            onClick={handleDeleteTeam}
-                            className={isTeamEmpty ? 'hover:!bg-red-50 hover:!text-red-600' : ''}
-                            disabled={!isTeamEmpty}
-                            disabledTooltip="멤버가 있는 팀은 삭제할 수 없습니다."
-                        >
-                            <Icon path={ICONS.trash} className="w-4 h-4 mr-2" /> 팀 삭제
-                        </DropdownItem>
-                    </Dropdown>
-                </div>
-            </div>
-            {!isCollapsed && (
-                <div className="space-y-1 sm:space-y-2 flex-grow">
-                    {team.parts.map(part => (
-                        <PartSection 
-                            key={part.id} 
-                            part={part} 
-                            teamId={team.id} 
-                            onAddMember={onAddMember} 
-                            onEditMember={onEditMember} 
-                            onDeleteMember={onDeleteMember} 
-                            onDropMemberInPart={onDropMemberInPart} 
-                            onEditPart={onEditPart} 
-                            onDeletePart={onDeletePart} 
-                            onMoveMember={onMoveMember}
-                            searchTerm={searchTerm} 
-                            baseDate={baseDate}
-                        />
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-});
+);
 
 TeamCard.displayName = 'TeamCard';

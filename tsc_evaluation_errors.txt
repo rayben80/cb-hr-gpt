@@ -1,0 +1,14 @@
+
+src/features/template/hooks/useItemPresets.ts(105,13): error TS2322: Type '{ scoringType: "5grade" | "5point" | "10point" | "100point" | "3level" | "likert5" | undefined; scoring: { grade: string; description: string; score: number; }[]; id: number; type: "?뺣웾" | "?뺤꽦"; title: string; weight: number; details: { ...; }; }[]' is not assignable to type 'EvaluationItem[]'.
+  Type '{ scoringType: EvaluationItem["scoringType"]; scoring: { grade: string; description: string; score: number; }[]; id: number; type: "\uC815\uB7C9" | "\uC815\uC131"; title: string; weight: number; details: { metric?: string; target?: string; calculation?: string; description?: string; }; }' is not assignable to type 'EvaluationItem' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+src/features/template/TemplateEditor.tsx(62,13): error TS2322: Type 'EvaluationTemplate' is not assignable to type 'TemplateState'.
+  Property 'items' is optional in type 'EvaluationTemplate' but required in type 'TemplateState'.
+src/features/template/TemplateEditor.tsx(69,13): error TS2322: Type 'EvaluationTemplate' is not assignable to type 'TemplateState'.
+  Property 'items' is optional in type 'EvaluationTemplate' but required in type 'TemplateState'.
+src/features/template/TemplateEditor.tsx(163,25): error TS2322: Type 'EvaluationItem[] | undefined' is not assignable to type 'EvaluationItem[]'.
+  Type 'undefined' is not assignable to type 'EvaluationItem[]'.
+src/features/template/TemplateEditor.tsx(174,55): error TS2322: Type 'EvaluationTemplate' is not assignable to type '{ name: string; type: string; category: string; items: EvaluationItem[]; }'.
+  Property 'items' is optional in type 'EvaluationTemplate' but required in type '{ name: string; type: string; category: string; items: EvaluationItem[]; }'.
+src/features/template/TemplateListView.tsx(66,26): error TS2375: Type '{ key: string | number; template: EvaluationTemplate; onEdit: (id: string | number) => void; onArchive: (id: string | number) => void; onRestore: (id: string | number) => void; ... 6 more ...; onToggleSelect: ((id: string | number) => void) | undefined; }' is not assignable to type 'TemplateListRowProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+src/hooks/evaluation/useImportExport.ts(5,5): error TS6133: 'templates' is declared but its value is never read.
+

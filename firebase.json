@@ -4,6 +4,9 @@
       "dataDir": "dataconnect/.dataconnect/pgliteData"
     }
   },
+  "functions": {
+    "source": "functions"
+  },
   "dataconnect": {
     "source": "dataconnect"
   }

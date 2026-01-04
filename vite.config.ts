@@ -6,8 +6,8 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5177,
-    strictPort: false,
+    port: 5178,
+    strictPort: true,
   },
   resolve: {
     alias: {

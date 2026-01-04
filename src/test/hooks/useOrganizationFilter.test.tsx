@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useOrganizationFilter } from '../../hooks/useOrganizationFilter';
+import { renderHook } from '@testing-library/react';
+import { useOrganizationFilter } from '../../hooks/organization/useOrganizationFilter';
 import { Team } from '../../constants';
 
 describe('useOrganizationFilter Hook', () => {
@@ -74,7 +74,7 @@ describe('useOrganizationFilter Hook', () => {
     // active 상태의 멤버만 포함되어야 함
     expect(result.current.activeTeams[0].parts[0].members).toHaveLength(1);
     expect(result.current.activeTeams[0].parts[0].members[0].name).toBe('김개발');
-    
+
     // on_leave 상태의 멤버는 별도로 분리되어야 함
     expect(result.current.onLeaveMembers).toHaveLength(1);
     expect(result.current.onLeaveMembers[0].name).toBe('이디자인');

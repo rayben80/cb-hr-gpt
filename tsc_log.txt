@@ -1,0 +1,20 @@
+src/features/template/hooks/useItemPresets.ts(105,13): error TS2322: Type '{ scoringType: "5grade" | "5point" | "10point" | "100point" | "3level" | "likert5" | undefined; scoring: { grade: string; description: string; score: number; }[]; id: number; type: "?뺣웾" | "?뺤꽦"; title: string; weight: number; details: { ...; }; }[]' is not assignable to type 'EvaluationItem[]'.
+  Type '{ scoringType: EvaluationItem["scoringType"]; scoring: { grade: string; description: string; score: number; }[]; id: number; type: "\uC815\uB7C9" | "\uC815\uC131"; title: string; weight: number; details: { metric?: string; target?: string; calculation?: string; description?: string; }; }' is not assignable to type 'EvaluationItem' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'scoringType' are incompatible.
+      Type '"5grade" | "5point" | "10point" | "100point" | "3level" | "likert5" | undefined' is not assignable to type '"5grade" | "5point" | "10point" | "100point" | "3level" | "likert5"'.
+        Type 'undefined' is not assignable to type '"5grade" | "5point" | "10point" | "100point" | "3level" | "likert5"'.
+src/features/template/TemplateListView.tsx(66,26): error TS2375: Type '{ key: string | number; template: EvaluationTemplate; onEdit: (id: string | number) => void; onArchive: (id: string | number, name: string) => void; onRestore: (id: string | number, name: string) => void; ... 6 more ...; onToggleSelect: ((id: string | number) => void) | undefined; }' is not assignable to type 'TemplateListRowProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onToggleSelect' are incompatible.
+    Type '((id: string | number) => void) | undefined' is not assignable to type '(id: string | number) => void'.
+      Type 'undefined' is not assignable to type '(id: string | number) => void'.
+src/hooks/common/useToast.ts(2,22): error TS2614: Module '"../../components/Toast"' has no exported member 'ToastType'. Did you mean to use 'import ToastType from "../../components/Toast"' instead?
+src/hooks/common/useToast.ts(50,13): error TS2353: Object literal may only specify known properties, and 'showProgress' does not exist in type 'ToastProps'.
+src/hooks/evaluation/useImportExport.ts(5,5): error TS6133: 'templates' is declared but its value is never read.
+src/pages/library/TemplateHistoryTab.tsx(23,22): error TS2375: Type '{ key: number; history: VersionHistoryItem; templateId: string | number; onRestoreVersion: ((templateId: string | number, version: number) => void) | undefined; }' is not assignable to type 'VersionHistoryRowProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onRestoreVersion' are incompatible.
+    Type '((templateId: string | number, version: number) => void) | undefined' is not assignable to type '(templateId: string | number, version: number) => void'.
+      Type 'undefined' is not assignable to type '(templateId: string | number, version: number) => void'.
+src/pages/library/TemplatePreviewModal.tsx(63,30): error TS2375: Type '{ versionHistory: TemplateVersionHistory[]; templateId: string | number; onRestoreVersion: ((templateId: string | number, version: number) => void) | undefined; }' is not assignable to type 'TemplateHistoryTabProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onRestoreVersion' are incompatible.
+    Type '((templateId: string | number, version: number) => void) | undefined' is not assignable to type '(templateId: string | number, version: number) => void'.
+      Type 'undefined' is not assignable to type '(templateId: string | number, version: number) => void'.

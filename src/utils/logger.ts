@@ -5,7 +5,7 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 class Logger {
-    private isDevelopment = true; // 개발 모드로 고정
+    private isDevelopment = import.meta.env.DEV;
 
     private formatMessage(level: LogLevel, message: string, ...args: any[]): void {
         if (!this.isDevelopment && level === 'debug') {

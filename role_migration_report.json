@@ -1,0 +1,179 @@
+{
+  "totalMembers": 21,
+  "changedMembers": 21,
+  "byRole": {
+    "팀장": 1,
+    "파트장": 0,
+    "팀원": 20
+  },
+  "changes": [
+    {
+      "memberId": "mem_chobyungchul",
+      "name": "조병철",
+      "fromRole": "영업관리",
+      "toRole": "팀원",
+      "teamId": "team_sales",
+      "partId": "part_sales_manage"
+    },
+    {
+      "memberId": "mem_choimin",
+      "name": "최민",
+      "fromRole": "Sales",
+      "toRole": "팀원",
+      "teamId": "team_sales",
+      "partId": "part_sales"
+    },
+    {
+      "memberId": "mem_kimdamin",
+      "name": "김다민",
+      "fromRole": "Sales",
+      "toRole": "팀원",
+      "teamId": "team_sales",
+      "partId": "part_sales"
+    },
+    {
+      "memberId": "mem_parkjinhee",
+      "name": "박진희",
+      "fromRole": "Sales",
+      "toRole": "팀원",
+      "teamId": "team_sales",
+      "partId": "part_sales"
+    },
+    {
+      "memberId": "mem_parkjiwoo",
+      "name": "박지우",
+      "fromRole": "Sales",
+      "toRole": "팀원",
+      "teamId": "team_sales",
+      "partId": "part_sales"
+    },
+    {
+      "memberId": "mem_kimsohyun",
+      "name": "김소현",
+      "fromRole": "기술지원",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_tech_support"
+    },
+    {
+      "memberId": "mem_leejaehyuk",
+      "name": "이재혁",
+      "fromRole": "기술지원",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_tech_support"
+    },
+    {
+      "memberId": "mem_leeseojun",
+      "name": "이서준",
+      "fromRole": "기술지원",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_tech_support"
+    },
+    {
+      "memberId": "mem_choichulhwan",
+      "name": "최철환",
+      "fromRole": "Technical Writing",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_tech_writing"
+    },
+    {
+      "memberId": "mem_jangnayoung",
+      "name": "장나영",
+      "fromRole": "Technical Marketing",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_tech_marketing"
+    },
+    {
+      "memberId": "mem_junghyunok",
+      "name": "정현옥",
+      "fromRole": "CX팀 팀장",
+      "toRole": "팀장",
+      "teamId": "team_cx",
+      "partId": "part_biz_ops"
+    },
+    {
+      "memberId": "mem_leedahee",
+      "name": "이다희",
+      "fromRole": "사업운영",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_biz_ops"
+    },
+    {
+      "memberId": "mem_kimdabin",
+      "name": "김다빈",
+      "fromRole": "사업운영",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_biz_ops"
+    },
+    {
+      "memberId": "mem_parksarang",
+      "name": "박사랑",
+      "fromRole": "고객서비스",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_customer_service"
+    },
+    {
+      "memberId": "mem_heoahyoung",
+      "name": "허아영",
+      "fromRole": "고객서비스",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_customer_service"
+    },
+    {
+      "memberId": "mem_kimtaeeun",
+      "name": "김태은",
+      "fromRole": "고객서비스",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_customer_service"
+    },
+    {
+      "memberId": "mem_choitaehyun",
+      "name": "최현",
+      "fromRole": "CX팀 인턴",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_customer_service"
+    },
+    {
+      "memberId": "mem_leejunsu",
+      "name": "이준수",
+      "fromRole": "CX팀 인턴",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_customer_service"
+    },
+    {
+      "memberId": "mem_limjaeeon",
+      "name": "임재언",
+      "fromRole": "CX팀 인턴",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_customer_service"
+    },
+    {
+      "memberId": "mem_kimseoeun",
+      "name": "김서은",
+      "fromRole": "CX팀 인턴",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_customer_service"
+    },
+    {
+      "memberId": "mem_leenaeun",
+      "name": "이나은",
+      "fromRole": "CX팀 인턴",
+      "toRole": "팀원",
+      "teamId": "team_cx",
+      "partId": "part_customer_service"
+    }
+  ]
+}

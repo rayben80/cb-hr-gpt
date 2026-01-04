@@ -1,0 +1,4 @@
+name = "google-chat-proxy"
+main = "src/index.js"
+compatibility_date = "2024-12-01"
+account_id = "f4fb1f9993ac7a8d90e0cc74835eca76"

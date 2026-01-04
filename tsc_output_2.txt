@@ -1,0 +1,124 @@
+src/App.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/App.tsx(16,24): error TS6133: 'setActivePage' is declared but its value is never read.
+src/App.tsx(17,12): error TS6133: 'isErrorLogOpen' is declared but its value is never read.
+src/App.tsx(17,28): error TS6133: 'setIsErrorLogOpen' is declared but its value is never read.
+src/App.tsx(19,11): error TS6133: 'toggleSidebar' is declared but its value is never read.
+src/App.tsx(35,11): error TS6133: 'renderPage' is declared but its value is never read.
+src/components/AnnualEvaluationSettingsModal.tsx(23,15): error TS7030: Not all code paths return a value.
+src/components/common/Button.tsx(3,1): error TS6133: 'ICONS' is declared but its value is never read.
+src/components/dashboard/DepartmentPerformanceChart.tsx(12,30): error TS6133: 'index' is declared but its value is never read.
+src/components/dashboard/ScoreDistributionChart.tsx(40,45): error TS6133: 'index' is declared but its value is never read.
+src/components/ErrorBoundary.tsx(45,19): error TS2345: Argument of type '{ hasError: false; error: undefined; errorInfo: undefined; }' is not assignable to parameter of type 'State | ((prevState: Readonly<State>, props: Readonly<Props>) => State | Pick<State, "error" | "hasError" | "errorInfo"> | null) | Pick<...> | null'.
+  Type '{ hasError: false; error: undefined; errorInfo: undefined; }' is not assignable to type 'Pick<State, "error" | "hasError" | "errorInfo">' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'error' are incompatible.
+      Type 'undefined' is not assignable to type 'Error'.
+src/components/EvaluationLibrary.tsx(399,23): error TS6133: 'setIsLoading' is declared but its value is never read.
+src/components/EvaluationLibrary.tsx(400,19): error TS6133: 'setError' is declared but its value is never read.
+src/components/EvaluationLibrary.tsx(420,12): error TS6133: 'selectedPresetType' is declared but its value is never read.
+src/components/EvaluationLibrary.tsx(439,30): error TS2345: Argument of type '(prev: EvaluationTemplate[]) => (EvaluationTemplate | { version: number; favorite: boolean | undefined; archived: boolean | undefined; ... 9 more ...; author: string; })[]' is not assignable to parameter of type 'SetStateAction<EvaluationTemplate[]>'.
+  Type '(prev: EvaluationTemplate[]) => (EvaluationTemplate | { version: number; favorite: boolean | undefined; archived: boolean | undefined; ... 9 more ...; author: string; })[]' is not assignable to type '(prevState: EvaluationTemplate[]) => EvaluationTemplate[]'.
+    Type '(EvaluationTemplate | { version: number; favorite: boolean | undefined; archived: boolean | undefined; versionHistory: { version: number; savedAt: string; savedBy: string; snapshot: Omit<...>; }[]; ... 8 more ...; author: string; })[]' is not assignable to type 'EvaluationTemplate[]'.
+      Type 'EvaluationTemplate | { version: number; favorite: boolean | undefined; archived: boolean | undefined; versionHistory: { version: number; savedAt: string; savedBy: string; snapshot: Omit<...>; }[]; ... 8 more ...; author: string; }' is not assignable to type 'EvaluationTemplate' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Type '{ version: number; favorite: boolean | undefined; archived: boolean | undefined; versionHistory: { version: number; savedAt: string; savedBy: string; snapshot: Omit<EvaluationTemplate, "versionHistory">; }[]; ... 8 more ...; author: string; }' is not assignable to type 'EvaluationTemplate' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+          Types of property 'favorite' are incompatible.
+            Type 'boolean | undefined' is not assignable to type 'boolean'.
+              Type 'undefined' is not assignable to type 'boolean'.
+src/components/EvaluationLibrary.tsx(671,30): error TS2345: Argument of type '(prev: EvaluationTemplate[]) => (EvaluationTemplate | { id: string | number; version: number; lastUpdated: string; author: string; favorite: boolean | undefined; ... 7 more ...; items?: EvaluationItem[]; })[]' is not assignable to parameter of type 'SetStateAction<EvaluationTemplate[]>'.
+  Type '(prev: EvaluationTemplate[]) => (EvaluationTemplate | { id: string | number; version: number; lastUpdated: string; author: string; favorite: boolean | undefined; ... 7 more ...; items?: EvaluationItem[]; })[]' is not assignable to type '(prevState: EvaluationTemplate[]) => EvaluationTemplate[]'.
+    Type '(EvaluationTemplate | { id: string | number; version: number; lastUpdated: string; author: string; favorite: boolean | undefined; archived: boolean | undefined; ... 6 more ...; items?: EvaluationItem[]; })[]' is not assignable to type 'EvaluationTemplate[]'.
+      Type 'EvaluationTemplate | { id: string | number; version: number; lastUpdated: string; author: string; favorite: boolean | undefined; archived: boolean | undefined; ... 6 more ...; items?: EvaluationItem[]; }' is not assignable to type 'EvaluationTemplate' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Type '{ id: string | number; version: number; lastUpdated: string; author: string; favorite: boolean | undefined; archived: boolean | undefined; versionHistory: TemplateVersionHistory[]; ... 5 more ...; items?: EvaluationItem[]; }' is not assignable to type 'EvaluationTemplate' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+          Types of property 'favorite' are incompatible.
+            Type 'boolean | undefined' is not assignable to type 'boolean'.
+              Type 'undefined' is not assignable to type 'boolean'.
+src/components/EvaluationLibrary.tsx(1054,18): error TS2375: Type '{ initialTemplate: EvaluationTemplate | null; onSave: (newTemplateData: EvaluationTemplate) => Promise<void>; onCancel: () => void; ... 6 more ...; existingTemplates: EvaluationTemplate[]; }' is not assignable to type 'TemplateEditorProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onToggleFavorite' are incompatible.
+    Type '(() => void) | undefined' is not assignable to type '() => void'.
+      Type 'undefined' is not assignable to type '() => void'.
+src/components/EvaluationManagement.tsx(2,8): error TS6133: 'React' is declared but its value is never read.
+src/components/EvaluationManagement.tsx(10,1): error TS6133: 'useNetworkStatus' is declared but its value is never read.
+src/components/EvaluationManagement.tsx(143,19): error TS6133: 'setError' is declared but its value is never read.
+src/components/EvaluationManagement.tsx(297,11): error TS6133: 'toggleAdminMode' is declared but its value is never read.
+src/components/organization/MemberActionModal.tsx(1,38): error TS6133: 'ChangeEvent' is declared but its value is never read.
+src/components/organization/MemberActionModal.tsx(39,15): error TS7030: Not all code paths return a value.
+src/components/organization/PartActionModal.tsx(21,15): error TS7030: Not all code paths return a value.
+src/components/organization/TeamActionModal.tsx(22,15): error TS7030: Not all code paths return a value.
+src/components/OrganizationManagement.tsx(5,38): error TS6133: 'Part' is declared but its value is never read.
+src/components/OrganizationManagement.tsx(55,26): error TS6133: 'networkActions' is declared but its value is never read.
+src/components/OrganizationManagement.tsx(65,23): error TS6133: 'orgDataConfirmation' is declared but its value is never read.
+src/components/OrganizationManagement.tsx(67,30): error TS6133: 'orgDataConfirmationActions' is declared but its value is never read.
+src/components/OrganizationManagement.tsx(318,48): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(326,18): error TS7006: Parameter 'team' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(328,26): error TS7006: Parameter 'part' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(330,54): error TS7006: Parameter 'member' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(332,29): error TS7006: Parameter 'part' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(336,21): error TS7006: Parameter 'team' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(345,48): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(345,53): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(346,48): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(346,53): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(688,117): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(688,122): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(688,150): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/components/OrganizationManagement.tsx(688,153): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/Progress.tsx(2,1): error TS6133: 'Icon' is declared but its value is never read.
+src/components/Progress.tsx(3,1): error TS6133: 'ICONS' is declared but its value is never read.
+src/components/TemplateEditor.tsx(70,110): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement>) => void' is not assignable to type '(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void'.
+  Types of parameters 'e' and 'e' are incompatible.
+    Type 'ChangeEvent<HTMLInputElement | HTMLTextAreaElement>' is not assignable to type 'ChangeEvent<HTMLInputElement>'.
+      Type 'HTMLInputElement | HTMLTextAreaElement' is not assignable to type 'HTMLInputElement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Type 'HTMLTextAreaElement' is missing the following properties from type 'HTMLInputElement': accept, align, alt, capture, and 29 more.
+src/components/TemplateEditor.tsx(73,118): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement>) => void' is not assignable to type '(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void'.
+  Types of parameters 'e' and 'e' are incompatible.
+    Type 'ChangeEvent<HTMLInputElement | HTMLTextAreaElement>' is not assignable to type 'ChangeEvent<HTMLInputElement>'.
+      Type 'HTMLInputElement | HTMLTextAreaElement' is not assignable to type 'HTMLInputElement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Type 'HTMLTextAreaElement' is missing the following properties from type 'HTMLInputElement': accept, align, alt, capture, and 29 more.
+src/components/TemplateEditor.tsx(516,11): error TS6133: 'toggleItemCollapse' is declared but its value is never read.
+src/contexts/ErrorContext.tsx(4,1): error TS6133: 'ToastType' is declared but its value is never read.
+src/contexts/ErrorContext.tsx(71,7): error TS2412: Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'string'.
+src/contexts/RoleContext.tsx(1,54): error TS6133: 'useEffect' is declared but its value is never read.
+src/hooks/useKeyboardNavigation.ts(28,15): error TS7030: Not all code paths return a value.
+src/hooks/useMemberManagement.ts(1,33): error TS6133: 'useMemo' is declared but its value is never read.
+src/hooks/useMemberManagement.ts(25,24): error TS6133: 'showSuccess' is declared but its value is never read.
+src/hooks/useMemberManagement.ts(275,30): error TS2345: Argument of type '(prevTeams: Team[]) => Team[]' is not assignable to parameter of type 'Team[]'.
+src/hooks/useToast.ts(44,15): error TS2375: Type '{ id: string; type: ToastType; title: string; message: string | undefined; duration: number; showProgress: boolean; onClose: (id: string) => void; }' is not assignable to type 'ToastProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'message' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/test/components/Member.test.tsx(189,60): error TS2375: Type '{ email: undefined; id: string; name: string; role: string; avatar: string; status: "active" | "on_leave" | "resigned" | "intern"; hireDate: string; teamName?: string; partName?: string; teamId?: string; partId?: string; }' is not assignable to type 'Member' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'email' are incompatible.
+    Type 'undefined' is not assignable to type 'string'.
+src/test/components/Member.test.tsx(238,15): error TS2375: Type '{ onDragStart: undefined; onDragEnd: undefined; member: Member; onEdit: Mock<any, any>; onDelete: Mock<any, any>; baseDate: string; isDragging: boolean; }' is not assignable to type 'MemberProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onDragStart' are incompatible.
+    Type 'undefined' is not assignable to type '(member: Member) => void'.
+src/test/components/TeamCard.test.tsx(9,22): error TS6133: 'Member' is declared but its value is never read.
+src/test/hooks/useMemberManagement.test.tsx(9,16): error TS6133: 'Member' is declared but its value is never read.
+src/test/hooks/useMemberManagement.test.tsx(45,7): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type 'Team'.
+src/test/hooks/useMemberManagement.test.tsx(267,40): error TS2339: Property 'isVisible' does not exist on type 'ConfirmationState'.
+src/test/hooks/useOrganizationData.test.tsx(6,48): error TS6133: 'afterEach' is declared but its value is never read.
+src/test/hooks/useOrganizationData.test.tsx(7,22): error TS6133: 'act' is declared but its value is never read.
+src/test/hooks/useOrganizationData.test.tsx(143,40): error TS2339: Property 'isVisible' does not exist on type 'ConfirmationState'.
+src/test/hooks/useOrganizationFilter.test.tsx(7,22): error TS6133: 'act' is declared but its value is never read.
+src/test/setup.ts(66,5): error TS2322: Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'withImplementation(...)' are incompatible between these types.
+    Type 'MockInstance<[message?: any, ...optionalParams: any[]], void> | Promise<MockInstance<[message?: any, ...optionalParams: any[]], void>>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+      Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+src/test/setup.ts(67,5): error TS2322: Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'withImplementation(...)' are incompatible between these types.
+    Type 'MockInstance<[message?: any, ...optionalParams: any[]], void> | Promise<MockInstance<[message?: any, ...optionalParams: any[]], void>>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+      Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+src/test/setup.ts(68,5): error TS2322: Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'withImplementation(...)' are incompatible between these types.
+    Type 'MockInstance<[message?: any, ...optionalParams: any[]], void> | Promise<MockInstance<[message?: any, ...optionalParams: any[]], void>>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+      Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+src/test/setup.ts(69,5): error TS2322: Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'withImplementation(...)' are incompatible between these types.
+    Type 'MockInstance<[message?: any, ...optionalParams: any[]], void> | Promise<MockInstance<[message?: any, ...optionalParams: any[]], void>>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+      Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+src/test/utils/logger.test.ts(37,25): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/test/utils/logger.test.ts(108,25): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/test/utils/logger.test.ts(148,25): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/test/utils/logger.test.ts(180,25): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/utils/dashboardDataService.ts(312,5): error TS6133: 'teams' is declared but its value is never read.
+src/utils/dashboardDataService.ts(313,5): error TS6133: 'evaluations' is declared but its value is never read.

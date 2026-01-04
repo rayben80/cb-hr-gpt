@@ -1,0 +1,11 @@
+{
+  "name": "notification-proxy",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "firebase-functions": "^4.4.1"
+  }
+}

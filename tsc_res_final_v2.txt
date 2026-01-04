@@ -1,0 +1,6 @@
+src/pages/organization/OrganizationViews.tsx(174,17): error TS2322: Type '(member: Member) => void' is not assignable to type '(member: Member) => Promise<void>'.
+  Type 'void' is not assignable to type 'Promise<void>'.
+src/pages/organization/OrganizationViews.tsx(175,17): error TS2322: Type '(member: Member) => void' is not assignable to type '(member: Member) => Promise<void>'.
+  Type 'void' is not assignable to type 'Promise<void>'.
+src/pages/organization/OrganizationViews.tsx(176,17): error TS2322: Type '(member: Member) => void' is not assignable to type '(member: Member) => Promise<void>'.
+  Type 'void' is not assignable to type 'Promise<void>'.

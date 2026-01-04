@@ -7,6 +7,7 @@ import { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { vi, expect } from 'vitest';
 import { Team, Member, Part, EvaluationTemplate } from '../constants';
+import { getAvatarUrl } from '../utils/avatarUtils';
 
 // 컨텍스트가 필요한 컴포넌트를 위한 래퍼
 interface ProvidersProps {
@@ -30,7 +31,7 @@ export const mockMember: Member = {
   name: '김테스트',
   role: '선임연구원',
   email: 'test@example.com',
-  avatar: 'https://ui-avatars.com/api/?name=김테스트&background=random&color=fff',
+  avatar: getAvatarUrl('김테스트'),
   hireDate: '2023-01-15',
   status: 'active',
 };

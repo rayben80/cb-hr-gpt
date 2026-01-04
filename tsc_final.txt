@@ -1,0 +1,30 @@
+src/pages/EvaluationLibrary.tsx(43,12): error TS6133: 'selectedPresetType' is declared but its value is never read.
+src/test/components/Member.test.tsx(189,60): error TS2375: Type '{ email: undefined; id: string; name: string; role: string; avatar: string; status: "active" | "on_leave" | "resigned" | "intern"; hireDate: string; teamName?: string; partName?: string; teamId?: string; partId?: string; }' is not assignable to type 'Member' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'email' are incompatible.
+    Type 'undefined' is not assignable to type 'string'.
+src/test/components/Member.test.tsx(238,15): error TS2375: Type '{ onDragStart: undefined; onDragEnd: undefined; member: Member; onEdit: Mock<any, any>; onDelete: Mock<any, any>; baseDate: string; isDragging: boolean; }' is not assignable to type 'MemberProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onDragStart' are incompatible.
+    Type 'undefined' is not assignable to type '(member: Member) => void'.
+src/test/components/TeamCard.test.tsx(9,22): error TS6133: 'Member' is declared but its value is never read.
+src/test/hooks/useMemberManagement.test.tsx(267,40): error TS2339: Property 'isVisible' does not exist on type 'ConfirmationState'.
+src/test/hooks/useOrganizationData.test.tsx(143,40): error TS2339: Property 'isVisible' does not exist on type 'ConfirmationState'.
+src/test/setup.ts(66,5): error TS2322: Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'withImplementation(...)' are incompatible between these types.
+    Type 'MockInstance<[message?: any, ...optionalParams: any[]], void> | Promise<MockInstance<[message?: any, ...optionalParams: any[]], void>>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+      Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+src/test/setup.ts(67,5): error TS2322: Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'withImplementation(...)' are incompatible between these types.
+    Type 'MockInstance<[message?: any, ...optionalParams: any[]], void> | Promise<MockInstance<[message?: any, ...optionalParams: any[]], void>>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+      Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+src/test/setup.ts(68,5): error TS2322: Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'withImplementation(...)' are incompatible between these types.
+    Type 'MockInstance<[message?: any, ...optionalParams: any[]], void> | Promise<MockInstance<[message?: any, ...optionalParams: any[]], void>>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+      Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+src/test/setup.ts(69,5): error TS2322: Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown>'.
+  The types returned by 'withImplementation(...)' are incompatible between these types.
+    Type 'MockInstance<[message?: any, ...optionalParams: any[]], void> | Promise<MockInstance<[message?: any, ...optionalParams: any[]], void>>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+      Type 'MockInstance<[message?: any, ...optionalParams: any[]], void>' is not assignable to type 'MockInstance<unknown[], unknown> | Promise<MockInstance<unknown[], unknown>>'.
+src/test/utils/logger.test.ts(37,25): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/test/utils/logger.test.ts(108,25): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/test/utils/logger.test.ts(148,25): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/test/utils/logger.test.ts(180,25): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.

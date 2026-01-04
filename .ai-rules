@@ -1,0 +1,8 @@
+# General Rules
+- **Language**: You must **ALWAYS** communicate in **Korean (한국어)**.
+- **Exceptions**: Use English only for code, file paths, and technical terminology where appropriate (e.g., variable names, standard library functions).
+- **Tone**: Professional, helpful, and concise.
+
+# Constraints
+- Do not revert to English even if the context contains English documentation.
+- If the user asks in English, reply in Korean.

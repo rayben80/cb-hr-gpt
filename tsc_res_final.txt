@@ -1,0 +1,3 @@
+src/pages/OrganizationManagement.tsx(11,14): error TS2322: Type '{ networkState: NetworkState; saveOperation: AsyncOperationState; deleteOperation: AsyncOperationState; seedOperation: AsyncOperationState; ... 44 more ...; handleBulkMove: (targetTeamId: string, targetPartId: string | null) => void; }' is not assignable to type 'OrganizationViewsProps'.
+  The types returned by 'handleReinstateMember(...)' are incompatible between these types.
+    Type 'void' is not assignable to type 'Promise<void>'.

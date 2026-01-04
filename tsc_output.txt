@@ -1,0 +1,116 @@
+src/components/library/LibraryListMode.tsx(150,25): error TS2322: Type '(id: string) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+src/components/library/LibraryListMode.tsx(151,25): error TS2322: Type '(id: string, name: string) => void' is not assignable to type '(id: string | number) => void'.
+  Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/components/library/LibraryListMode.tsx(152,25): error TS2322: Type '(id: string, name: string) => void' is not assignable to type '(id: string | number) => void'.
+  Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/components/library/LibraryListMode.tsx(153,25): error TS2322: Type '(id: string) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+src/components/library/LibraryListMode.tsx(155,25): error TS2322: Type '(id: string) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+src/components/library/LibraryListMode.tsx(159,25): error TS2322: Type '(id: string) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+src/components/library/TemplateGridView.tsx(39,25): error TS2322: Type '(id: string) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+src/components/library/TemplateGridView.tsx(40,25): error TS2322: Type '(id: string, name: string) => void' is not assignable to type '(id: string | number) => void'.
+  Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/components/library/TemplateGridView.tsx(41,25): error TS2322: Type '(id: string, name: string) => void' is not assignable to type '(id: string | number) => void'.
+  Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/components/library/TemplateGridView.tsx(42,25): error TS2322: Type '(id: string) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+src/components/library/TemplateGridView.tsx(44,25): error TS2322: Type '(id: string) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+src/components/library/TemplateGridView.tsx(47,53): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+src/components/library/TemplateGridView.tsx(48,25): error TS2322: Type '(id: string) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+src/components/library/TemplateListRow.tsx(143,22): error TS2375: Type '{ isArchived: boolean; isSelected: boolean; onToggleSelect: ((id: string | number) => void) | undefined; templateId: string | number; }' is not assignable to type '{ isArchived: boolean; isSelected: boolean; onToggleSelect?: (id: string | number) => void; templateId: string | number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onToggleSelect' are incompatible.
+    Type '((id: string | number) => void) | undefined' is not assignable to type '(id: string | number) => void'.
+      Type 'undefined' is not assignable to type '(id: string | number) => void'.
+src/components/organization/MemberActionForm.tsx(5,10): error TS2305: Module '"../common"' has no exported member 'CloseButton'.
+src/components/organization/MemberActionForm.tsx(5,23): error TS2305: Module '"../common"' has no exported member 'ModalActions'.
+src/components/organization/MemberPersonalInfo.tsx(37,17): error TS2322: Type '(e: ChangeEvent<HTMLInputElement>) => void' is not assignable to type '(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void'.
+  Types of parameters 'e' and 'e' are incompatible.
+    Type 'ChangeEvent<HTMLInputElement | HTMLTextAreaElement>' is not assignable to type 'ChangeEvent<HTMLInputElement>'.
+      Type 'HTMLInputElement | HTMLTextAreaElement' is not assignable to type 'HTMLInputElement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Type 'HTMLTextAreaElement' is missing the following properties from type 'HTMLInputElement': accept, align, alt, capture, and 29 more.
+src/components/organization/MemberPersonalInfo.tsx(46,17): error TS2322: Type '(e: ChangeEvent<HTMLInputElement>) => void' is not assignable to type '(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void'.
+  Types of parameters 'e' and 'e' are incompatible.
+    Type 'ChangeEvent<HTMLInputElement | HTMLTextAreaElement>' is not assignable to type 'ChangeEvent<HTMLInputElement>'.
+      Type 'HTMLInputElement | HTMLTextAreaElement' is not assignable to type 'HTMLInputElement' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Type 'HTMLTextAreaElement' is missing the following properties from type 'HTMLInputElement': accept, align, alt, capture, and 29 more.
+src/components/organization/OrganizationModals.tsx(91,21): error TS2322: Type '{ teamId?: string; partId?: string; } | undefined' is not assignable to type '{ teamId: string; partId: string; } | null'.
+  Type 'undefined' is not assignable to type '{ teamId: string; partId: string; } | null'.
+src/components/Toast.tsx(48,92): error TS2551: Property 'progressBarColor' does not exist on type '{ bgColor: string; borderColor: string; textColor: string; iconColor: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; progressColor: string; } | { ...; } | { ...; } | { ...; }'. Did you mean 'progressColor'?
+  Property 'progressBarColor' does not exist on type '{ bgColor: string; borderColor: string; textColor: string; iconColor: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; progressColor: string; }'.
+src/components/ToastContainer.tsx(2,17): error TS2614: Module '"./Toast"' has no exported member 'ToastProps'. Did you mean to use 'import ToastProps from "./Toast"' instead?
+src/features/template/hooks/useItemDragDrop.ts(16,35): error TS6133: 'items' is declared but its value is never read.
+src/features/template/hooks/useItemPresets.ts(105,13): error TS2322: Type '{ scoringType: "5grade" | "5point" | "10point" | "100point" | "3level" | "likert5" | undefined; scoring: { grade: string; description: string; score: number; }[]; id: number; type: "?뺣웾" | "?뺤꽦"; title: string; weight: number; details: { ...; }; }[]' is not assignable to type 'EvaluationItem[]'.
+  Type '{ scoringType: EvaluationItem["scoringType"]; scoring: { grade: string; description: string; score: number; }[]; id: number; type: "\uC815\uB7C9" | "\uC815\uC131"; title: string; weight: number; details: { metric?: string; target?: string; calculation?: string; description?: string; }; }' is not assignable to type 'EvaluationItem' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'scoringType' are incompatible.
+      Type '"5grade" | "5point" | "10point" | "100point" | "3level" | "likert5" | undefined' is not assignable to type '"5grade" | "5point" | "10point" | "100point" | "3level" | "likert5"'.
+        Type 'undefined' is not assignable to type '"5grade" | "5point" | "10point" | "100point" | "3level" | "likert5"'.
+src/features/template/hooks/useTemplateSave.ts(33,13): error TS18048: 'template.items' is possibly 'undefined'.
+src/features/template/hooks/useTemplateSave.ts(36,43): error TS18048: 'template.items' is possibly 'undefined'.
+src/features/template/TemplateEditor.tsx(62,13): error TS2322: Type 'EvaluationTemplate' is not assignable to type 'TemplateState'.
+  Property 'items' is optional in type 'EvaluationTemplate' but required in type 'TemplateState'.
+src/features/template/TemplateEditor.tsx(69,13): error TS2322: Type 'EvaluationTemplate' is not assignable to type 'TemplateState'.
+  Property 'items' is optional in type 'EvaluationTemplate' but required in type 'TemplateState'.
+src/features/template/TemplateEditor.tsx(79,19): error TS18048: 'template.items' is possibly 'undefined'.
+src/features/template/TemplateEditor.tsx(95,50): error TS18048: 'template.items' is possibly 'undefined'.
+src/features/template/TemplateEditor.tsx(163,25): error TS2322: Type 'EvaluationItem[] | undefined' is not assignable to type 'EvaluationItem[]'.
+  Type 'undefined' is not assignable to type 'EvaluationItem[]'.
+src/features/template/TemplateEditor.tsx(174,55): error TS2322: Type 'EvaluationTemplate' is not assignable to type '{ name: string; type: string; category: string; items: EvaluationItem[]; }'.
+  Property 'items' is optional in type 'EvaluationTemplate' but required in type '{ name: string; type: string; category: string; items: EvaluationItem[]; }'.
+src/features/template/TemplateListView.tsx(66,26): error TS2375: Type '{ key: string | number; template: EvaluationTemplate; onEdit: (id: string | number) => void; onArchive: (id: string | number) => void; onRestore: (id: string | number) => void; ... 6 more ...; onToggleSelect: ((id: string | number) => void) | undefined; }' is not assignable to type 'TemplateListRowProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onToggleSelect' are incompatible.
+    Type '((id: string | number) => void) | undefined' is not assignable to type '(id: string | number) => void'.
+      Type 'undefined' is not assignable to type '(id: string | number) => void'.
+src/hooks/common/useToast.ts(2,10): error TS2614: Module '"../../components/Toast"' has no exported member 'ToastProps'. Did you mean to use 'import ToastProps from "../../components/Toast"' instead?
+src/hooks/common/useToast.ts(2,22): error TS2614: Module '"../../components/Toast"' has no exported member 'ToastType'. Did you mean to use 'import ToastType from "../../components/Toast"' instead?
+src/hooks/evaluation/useImportExport.ts(5,5): error TS6133: 'templates' is declared but its value is never read.
+src/pages/library/LibraryViews.tsx(30,21): error TS2322: Type '(id: number) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'number'.
+      Type 'string' is not assignable to type 'number'.
+src/pages/library/LibraryViews.tsx(34,21): error TS2322: Type '(id: number) => void' is not assignable to type '(id: string | number) => void'.
+  Types of parameters 'id' and 'id' are incompatible.
+    Type 'string | number' is not assignable to type 'number'.
+      Type 'string' is not assignable to type 'number'.
+src/pages/library/LibraryViews.tsx(38,21): error TS2322: Type '(id: number, v: number) => any' is not assignable to type '(templateId: string | number, version: number) => void'.
+  Types of parameters 'id' and 'templateId' are incompatible.
+    Type 'string | number' is not assignable to type 'number'.
+      Type 'string' is not assignable to type 'number'.
+src/pages/library/LibraryViews.tsx(67,9): error TS6133: 'setView' is declared but its value is never read.
+src/pages/library/LibraryViews.tsx(149,21): error TS2322: Type 'Dispatch<SetStateAction<"name" | "lastUpdated" | "author">>' is not assignable to type '(field: SortField) => void'.
+  Types of parameters 'value' and 'field' are incompatible.
+    Type 'SortField' is not assignable to type 'SetStateAction<"name" | "lastUpdated" | "author">'.
+      Type '"questions"' is not assignable to type 'SetStateAction<"name" | "lastUpdated" | "author">'.
+src/pages/library/LibraryViews.tsx(168,21): error TS2322: Type 'Set<string | number>' is not assignable to type 'Set<string>'.
+  Type 'string | number' is not assignable to type 'string'.
+    Type 'number' is not assignable to type 'string'.
+src/pages/library/TemplateHistoryTab.tsx(23,22): error TS2375: Type '{ key: number; history: VersionHistoryItem; templateId: string | number; onRestoreVersion: ((templateId: string | number, version: number) => void) | undefined; }' is not assignable to type 'VersionHistoryRowProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onRestoreVersion' are incompatible.
+    Type '((templateId: string | number, version: number) => void) | undefined' is not assignable to type '(templateId: string | number, version: number) => void'.
+      Type 'undefined' is not assignable to type '(templateId: string | number, version: number) => void'.
+src/pages/library/TemplatePreviewModal.tsx(63,30): error TS2375: Type '{ versionHistory: TemplateVersionHistory[]; templateId: string | number; onRestoreVersion: ((templateId: string | number, version: number) => void) | undefined; }' is not assignable to type 'TemplateHistoryTabProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onRestoreVersion' are incompatible.
+    Type '((templateId: string | number, version: number) => void) | undefined' is not assignable to type '(templateId: string | number, version: number) => void'.
+      Type 'undefined' is not assignable to type '(templateId: string | number, version: number) => void'.
