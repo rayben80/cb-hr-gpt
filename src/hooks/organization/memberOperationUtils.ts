@@ -45,15 +45,13 @@ export const createDeleteResignedTask =
         return 'success';
     };
 
-export const calculateUpdatedTeamsForSave = ({
-    teams,
-    memberData,
-    teamId,
-    partId,
-    isEditing,
-    originalRecord,
-    options,
-}: CalculateSaveParams): Team[] => {
+// Extracted helper: Prepare Member Data
+// Extracted helper: Resolve Roles
+const resolveRoles = (
+    memberData: MemberType,
+    originalRecord: { member: MemberType } | null,
+    options?: SaveMemberOptions
+) => {
     const normalizedRole = normalizeMemberRole(memberData.role);
     const originalRole = normalizeMemberRole(originalRecord?.member.role ?? memberData.role);
     const storedRoleBeforeLead = originalRecord?.member.roleBeforeLead ?? memberData.roleBeforeLead;
@@ -76,6 +74,17 @@ export const calculateUpdatedTeamsForSave = ({
         roleBeforeLead = undefined;
     }
 
+    return { role, roleBeforeLead };
+};
+
+// Extracted helper: Prepare Member Data
+const prepareMemberDataForSave = (
+    memberData: MemberType,
+    originalRecord: { member: MemberType } | null,
+    options?: SaveMemberOptions
+) => {
+    const { role, roleBeforeLead } = resolveRoles(memberData, originalRecord, options);
+
     const sanitizedMemberData = { ...memberData, role };
     if (roleBeforeLead) {
         sanitizedMemberData.roleBeforeLead = roleBeforeLead;
@@ -83,30 +92,55 @@ export const calculateUpdatedTeamsForSave = ({
         delete sanitizedMemberData.roleBeforeLead;
     }
 
-    const finalMemberData =
-        memberData.role === role && memberData.roleBeforeLead === roleBeforeLead ? memberData : sanitizedMemberData;
+    return memberData.role === role && memberData.roleBeforeLead === roleBeforeLead ? memberData : sanitizedMemberData;
+};
 
-    let updatedTeams: Team[] = teams;
+// Extracted helper for updateTeamsLocally
+const handleExistingMemberUpdate = (
+    teams: Team[],
+    memberData: MemberType,
+    location: { teamId: string; partId: string | null },
+    oldLocation: { teamId: string | null; partId: string | null }
+) => {
+    const locationChanged =
+        oldLocation.teamId && (oldLocation.teamId !== location.teamId || oldLocation.partId !== location.partId);
 
-    if (isEditing) {
-        const oldLocation = findMemberLocation(teams, finalMemberData.id);
-
-        // Check if location changed (team or part)
-        const locationChanged = oldLocation.teamId && (oldLocation.teamId !== teamId || oldLocation.partId !== partId);
-
-        if (locationChanged) {
-            updatedTeams = moveMemberInTeams(
-                teams,
-                { teamId: oldLocation.teamId!, partId: oldLocation.partId },
-                { teamId, partId },
-                finalMemberData
-            );
-        } else {
-            updatedTeams = updateMemberInTeams(teams, teamId, partId, finalMemberData);
-        }
-    } else {
-        updatedTeams = addMemberToTeams(teams, teamId, partId, finalMemberData);
+    if (locationChanged) {
+        return moveMemberInTeams(
+            teams,
+            { teamId: oldLocation.teamId!, partId: oldLocation.partId },
+            location,
+            memberData
+        );
     }
+    return updateMemberInTeams(teams, location.teamId, location.partId, memberData);
+};
+
+// Extracted helper: Update Teams Locally
+const updateTeamsLocally = (
+    teams: Team[],
+    memberData: MemberType,
+    location: { teamId: string; partId: string | null },
+    isEditing: boolean
+) => {
+    if (isEditing) {
+        const oldLocation = findMemberLocation(teams, memberData.id);
+        return handleExistingMemberUpdate(teams, memberData, location, oldLocation);
+    }
+    return addMemberToTeams(teams, location.teamId, location.partId, memberData);
+};
+
+export const calculateUpdatedTeamsForSave = ({
+    teams,
+    memberData,
+    teamId,
+    partId,
+    isEditing,
+    originalRecord,
+    options,
+}: CalculateSaveParams): Team[] => {
+    const finalMemberData = prepareMemberDataForSave(memberData, originalRecord, options);
+    const updatedTeams = updateTeamsLocally(teams, finalMemberData, { teamId, partId }, isEditing);
 
     return updateTeamLeadsInTeams(updatedTeams, teamId, finalMemberData, originalRecord, options);
 };

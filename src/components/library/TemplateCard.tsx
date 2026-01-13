@@ -11,7 +11,9 @@ interface TemplateCardProps {
     onRestore: (id: string | number, name: string) => void;
     onDuplicate: (id: string | number) => void;
     onPreview: (template: EvaluationTemplate) => void;
-    onToggleFavorite: (id: string | number) => void;
+
+    onLaunch: (id: string | number) => void;
+    onDelete: (id: string | number, name: string) => void;
     isBusy: boolean;
     isSelectionMode?: boolean;
     isSelected?: boolean;
@@ -52,7 +54,6 @@ function useTemplateCardLogic(props: TemplateCardProps) {
     const versionLabel = `v${template.version ?? 1}`;
     const tags = template.tags?.slice(0, 3) || [];
     const isArchived = Boolean(template.archived);
-    const isFavorite = Boolean(template.favorite);
 
     const handleClick = (_e: React.MouseEvent | React.KeyboardEvent) => {
         if (isSelectionMode && !isArchived && onToggleSelect) {
@@ -76,7 +77,6 @@ function useTemplateCardLogic(props: TemplateCardProps) {
         versionLabel,
         tags,
         isArchived,
-        isFavorite,
         handleClick,
         handleKeyDown,
     };
@@ -89,15 +89,17 @@ export const TemplateCard = memo((props: TemplateCardProps) => {
         onArchive,
         onRestore,
         onDuplicate,
-        onToggleFavorite,
+
+        onLaunch,
         isBusy,
         isSelectionMode = false,
         isSelected = false,
         onToggleSelect,
         searchTerm = '',
+        onDelete,
     } = props;
 
-    const { style, Icon, itemCount, versionLabel, tags, isArchived, isFavorite, handleClick, handleKeyDown } =
+    const { style, Icon, itemCount, versionLabel, tags, isArchived, handleClick, handleKeyDown } =
         useTemplateCardLogic(props);
 
     const cardClassName = `bg-card rounded-xl shadow-sm hover:shadow-lg transition-all flex flex-col group relative ${
@@ -131,14 +133,14 @@ export const TemplateCard = memo((props: TemplateCardProps) => {
                     <TemplateCardActions
                         templateId={template.id}
                         templateName={template.name}
-                        isFavorite={isFavorite}
                         isArchived={isArchived}
                         isBusy={isBusy}
-                        onToggleFavorite={onToggleFavorite}
                         onDuplicate={onDuplicate}
                         onEdit={onEdit}
                         onRestore={onRestore}
                         onArchive={onArchive}
+                        onLaunch={onLaunch}
+                        onDelete={onDelete}
                     />
                 </div>
                 <h3 className="mt-4 text-lg font-bold text-slate-900 relative">

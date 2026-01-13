@@ -56,7 +56,7 @@ export const ChannelSettingsSection = ({
                     disabled={webhookReadOnly}
                 />
                 {webhookReadOnly && (
-                    <p className="text-[10px] text-slate-400">* 서버 프록시로 관리 중이라 브라우저에서 수정할 수 없습니다.</p>
+                    <p className="text-[10px] text-slate-400">* 환경변수로 관리 중이라 수정할 수 없습니다.</p>
                 )}
                 <div className="flex items-center justify-between">
                     <p className="text-[10px] text-slate-400">* Google Chat Space → Manage webhooks에서 URL 복사</p>

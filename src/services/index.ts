@@ -29,6 +29,7 @@ export {
     saveWebhookUrl,
     scheduleAutoReminder,
     sendDeadlineWarning,
+    sendEvaluationCompletion,
     sendEvaluationReminder,
     sendGoogleChatNotification,
     sendTestNotification,

@@ -1,10 +1,10 @@
 import { Bell, Bug, List as Menu, Moon, Sun } from '@phosphor-icons/react';
 import React, { memo } from 'react';
-import { currentUser } from '../../constants';
+import { useAuth } from '../../contexts/AuthContext';
 import { useError } from '../../contexts/ErrorContext';
 import { useRole } from '../../contexts/RoleContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getAvatarUrl } from '../../utils/avatarUtils';
+import { getDisplayAvatarUrl } from '../../utils/avatarUtils';
 import { Button, IconButton } from '../common';
 
 interface HeaderProps {
@@ -16,7 +16,12 @@ export const Header: React.FC<HeaderProps> = memo(({ onMenuClick, onErrorLogClic
     const { errors } = useError();
     const { role, setRole } = useRole();
     const { theme, toggleTheme } = useTheme();
+    const { currentUser } = useAuth();
     const errorCount = errors.filter((e: any) => e.type === 'error').length;
+    const canOverrideRole = import.meta.env.DEV;
+    const profileName = currentUser?.displayName || currentUser?.email || 'User';
+    const profileSeed = currentUser?.email || profileName;
+    const profileAvatar = getDisplayAvatarUrl(profileName, null, profileSeed);
 
     // Toggle Role for Demo Purpose
     const toggleRole = () => {
@@ -47,11 +52,13 @@ export const Header: React.FC<HeaderProps> = memo(({ onMenuClick, onErrorLogClic
                 </IconButton>
 
                 {/* Role Switcher for Demo - Uses Button component */}
-                <div className="hidden md:flex items-center space-x-2">
-                    <Button onClick={toggleRole} variant={role !== 'USER' ? 'primary' : 'secondary'} size="sm">
-                        {getRoleLabel()}
-                    </Button>
-                </div>
+                {canOverrideRole && (
+                    <div className="hidden md:flex items-center space-x-2">
+                        <Button onClick={toggleRole} variant={role !== 'USER' ? 'primary' : 'secondary'} size="sm">
+                            {getRoleLabel()}
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <div className="flex items-center space-x-2">
@@ -91,11 +98,11 @@ export const Header: React.FC<HeaderProps> = memo(({ onMenuClick, onErrorLogClic
                 <div className="flex items-center space-x-3 ml-2 pl-4 border-l border-border">
                     <img
                         className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20 transition-all hover:ring-primary/40"
-                        src={getAvatarUrl(currentUser.name)}
+                        src={profileAvatar}
                         alt="User avatar"
                     />
                     <div className="hidden sm:block">
-                        <span className="text-sm font-semibold text-foreground">{currentUser.name}</span>
+                        <span className="text-sm font-semibold text-foreground">{profileName}</span>
                     </div>
                 </div>
             </div>

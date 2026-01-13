@@ -3,6 +3,7 @@ import { Headquarter, initialHeadquarters, Part, Team } from '../../constants';
 import { useAsyncOperation } from '../common/useAsyncOperation';
 import { useConfirmation } from '../common/useConfirmation';
 import { useModal } from '../common/useModal';
+import { FirestoreActions } from './firestoreActions';
 import { usePartActions } from './usePartActions';
 import { useTeamActions } from './useTeamActions';
 
@@ -12,7 +13,7 @@ import { useTeamActions } from './useTeamActions';
 export const useTeamPartManagement = (
     teams: Team[],
     headquarters: Headquarter[] = initialHeadquarters,
-    firestoreActions: any
+    firestoreActions: FirestoreActions
 ) => {
     const [partModalState, partModalActions] = useModal<{ teamId: string; part?: Part }>();
     const [teamModalState, teamModalActions] = useModal<Team>();

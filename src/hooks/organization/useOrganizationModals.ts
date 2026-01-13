@@ -1,15 +1,17 @@
 /* eslint-disable max-lines-per-function */
 import { useCallback, useState } from 'react';
 import { Headquarter, LeaderHistory, Member, Team } from '../../constants';
-import { findMemberRecord, moveMemberInTeams } from './memberStateUtils';
+import { normalizeMemberRole } from '../../utils/memberRoleUtils';
+import { FirestoreActions } from './firestoreActions';
+import { findMemberRecord } from './memberStateUtils';
 
 interface UseOrganizationModalsOptions {
     teams: Team[];
-    setTeams: React.Dispatch<React.SetStateAction<Team[]>>;
     headquarters: Headquarter[];
     updateHeadquarter: (updated: Headquarter) => void;
     addHeadquarter: (newHq: Headquarter) => void;
     addHistoryEntry: (entry: Omit<LeaderHistory, 'id' | 'timestamp'>) => void;
+    firestoreActions: FirestoreActions;
 }
 
 interface UseOrganizationModalsReturn {
@@ -43,11 +45,12 @@ interface UseOrganizationModalsReturn {
 }
 
 export function useOrganizationModals({
-    setTeams,
+    teams,
     headquarters,
     updateHeadquarter,
     addHeadquarter,
     addHistoryEntry,
+    firestoreActions,
 }: UseOrganizationModalsOptions): UseOrganizationModalsReturn {
     // Member move modal state
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
@@ -64,23 +67,40 @@ export function useOrganizationModals({
     // Move member between teams/parts
     const moveMemberToTeamPart = useCallback(
         (memberId: string, targetTeamId: string, targetPartId: string) => {
-            setTeams((prevTeams) => {
-                const memberRecord = findMemberRecord(prevTeams, memberId);
-                if (!memberRecord) {
-                    console.warn('Member not found for moving:', memberId);
-                    return prevTeams;
-                }
-                const { teamId: oldTeamId, partId: oldPartId, member } = memberRecord;
+            const memberRecord = findMemberRecord(teams, memberId);
+            if (!memberRecord) {
+                console.warn('Member not found for moving:', memberId);
+                return;
+            }
 
-                return moveMemberInTeams(
-                    prevTeams,
-                    { teamId: oldTeamId, partId: oldPartId },
-                    { teamId: targetTeamId, partId: targetPartId },
-                    member
-                );
-            });
+            const targetTeam = teams.find((team) => team.id === targetTeamId);
+            if (!targetTeam) {
+                console.warn('Target team not found for moving:', targetTeamId);
+                return;
+            }
+
+            const resolvedPartId = targetPartId ? targetPartId : null;
+            const targetPart = resolvedPartId
+                ? targetTeam.parts.find((part) => part.id === resolvedPartId)
+                : undefined;
+            const shouldNormalizeRole = memberRecord.teamId !== targetTeamId;
+            const nextRole = shouldNormalizeRole
+                ? normalizeMemberRole(memberRecord.member.role)
+                : memberRecord.member.role;
+
+            void firestoreActions
+                .updateMember(memberId, {
+                    teamId: targetTeamId,
+                    partId: resolvedPartId,
+                    teamName: targetTeam.name,
+                    partName: resolvedPartId ? targetPart?.title ?? null : null,
+                    role: nextRole,
+                })
+                .catch((error) => {
+                    console.error('Failed to move member:', error);
+                });
         },
-        [setTeams]
+        [teams, firestoreActions]
     );
 
     // Member move modal handlers

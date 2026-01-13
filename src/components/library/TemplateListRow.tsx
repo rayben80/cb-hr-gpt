@@ -1,4 +1,3 @@
-import { Star } from '@phosphor-icons/react';
 import React, { memo, useCallback, useMemo } from 'react';
 import { EvaluationTemplate } from '../../constants';
 import { TemplateListRowActions } from './TemplateListRowActions';
@@ -13,7 +12,8 @@ interface TemplateListRowProps {
     onRestore: (id: string | number, name: string) => void;
     onDuplicate: (id: string | number) => void;
     onPreview: (template: EvaluationTemplate) => void;
-    onToggleFavorite: (id: string | number) => void;
+    onLaunch: (id: string | number) => void;
+    onDelete: (id: string | number, name: string) => void;
     isBusy: boolean;
     isSelectionMode?: boolean;
     isSelected: boolean;
@@ -27,7 +27,6 @@ function useTemplateListRowLogic(
     onPreview: (template: EvaluationTemplate) => void
 ) {
     const isArchived = Boolean(template.archived);
-    const isFavorite = Boolean(template.favorite);
     const itemCount = template.items ? template.items.length : template.questions || 0;
 
     const handleClick = useCallback(() => {
@@ -48,7 +47,7 @@ function useTemplateListRowLogic(
         [handleClick]
     );
 
-    return { isArchived, isFavorite, itemCount, handleClick, handleKeyDown };
+    return { isArchived, itemCount, handleClick, handleKeyDown };
 }
 
 const TemplateListRowCheckbox = memo(
@@ -82,38 +81,6 @@ const TemplateListRowCheckbox = memo(
 );
 TemplateListRowCheckbox.displayName = 'TemplateListRowCheckbox';
 
-const TemplateListRowFavorite = memo(
-    ({
-        isArchived,
-        isFavorite,
-        onToggleFavorite,
-        templateId,
-    }: {
-        isArchived: boolean;
-        isFavorite: boolean;
-        onToggleFavorite: (id: string | number) => void;
-        templateId: string | number;
-    }) => (
-        <div className="hidden md:flex w-10 items-center">
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleFavorite(templateId);
-                }}
-                disabled={isArchived}
-                className={`p-1 rounded-full ${isFavorite ? 'text-amber-500' : 'text-slate-300 hover:text-amber-400'} ${isArchived ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title={isFavorite ? '즐겨찾기 해제' : '즐겨찾기'}
-            >
-                <Star
-                    className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`}
-                    weight={isFavorite ? 'fill' : 'regular'}
-                />
-            </button>
-        </div>
-    )
-);
-TemplateListRowFavorite.displayName = 'TemplateListRowFavorite';
-
 export const TemplateListRow = memo(
     ({
         template,
@@ -122,13 +89,14 @@ export const TemplateListRow = memo(
         onRestore,
         onDuplicate,
         onPreview,
-        onToggleFavorite,
+        onLaunch,
         isBusy,
         isSelectionMode = false,
         isSelected,
         onToggleSelect,
+        onDelete,
     }: TemplateListRowProps) => {
-        const { isArchived, isFavorite, itemCount, handleClick, handleKeyDown } = useTemplateListRowLogic(
+        const { isArchived, itemCount, handleClick, handleKeyDown } = useTemplateListRowLogic(
             template,
             isSelectionMode,
             onToggleSelect,
@@ -151,18 +119,8 @@ export const TemplateListRow = memo(
                         templateId={template.id}
                     />
                 )}
-                <TemplateListRowFavorite
-                    isArchived={isArchived}
-                    isFavorite={isFavorite}
-                    onToggleFavorite={onToggleFavorite}
-                    templateId={template.id}
-                />
-                <TemplateListRowContent
-                    template={template}
-                    itemCount={itemCount}
-                    isArchived={isArchived}
-                    isFavorite={isFavorite}
-                />
+
+                <TemplateListRowContent template={template} itemCount={itemCount} isArchived={isArchived} />
                 <TemplateListRowInfo template={template} itemCount={itemCount} />
                 <div className="hidden md:flex w-32 items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <TemplateListRowActions
@@ -174,6 +132,8 @@ export const TemplateListRow = memo(
                         onEdit={onEdit}
                         onRestore={onRestore}
                         onArchive={onArchive}
+                        onLaunch={onLaunch}
+                        onDelete={onDelete}
                     />
                 </div>
                 <div className="md:hidden flex items-center justify-end gap-2 mt-2">
@@ -186,6 +146,8 @@ export const TemplateListRow = memo(
                         onEdit={onEdit}
                         onRestore={onRestore}
                         onArchive={onArchive}
+                        onLaunch={onLaunch}
+                        onDelete={onDelete}
                     />
                 </div>
             </div>

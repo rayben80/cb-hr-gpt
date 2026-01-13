@@ -26,6 +26,45 @@ const createVersionHistoryEntry = (template: EvaluationTemplate) => {
     };
 };
 
+// Extracted Helper: Update Logic
+async function updateExistingTemplate(
+    editingTemplate: EvaluationTemplate,
+    newTemplateData: EvaluationTemplate,
+    firestoreActions: FirestoreActions
+) {
+    const newHistoryEntry = createVersionHistoryEntry(editingTemplate);
+    const existingHistory = editingTemplate.versionHistory || [];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...dataToUpdate } = newTemplateData;
+
+    const updatedData = {
+        ...dataToUpdate,
+        version: (editingTemplate.version || 1) + 1,
+
+        archived: editingTemplate.archived,
+        versionHistory: [...existingHistory, newHistoryEntry].slice(-10),
+        lastUpdated: new Date().toISOString().split('T')[0],
+        author: currentUser.name,
+    };
+
+    await firestoreActions.updateTemplate(editingTemplate.id as string, updatedData);
+}
+
+// Extracted Helper: Create Logic
+async function createNewTemplate(newTemplateData: EvaluationTemplate, firestoreActions: FirestoreActions) {
+    const newTemplate = {
+        ...newTemplateData,
+
+        archived: false,
+        version: 1,
+        author: currentUser.name,
+        lastUpdated: new Date().toISOString().split('T')[0],
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...templateToAdd } = newTemplate;
+    await firestoreActions.addTemplate(templateToAdd);
+}
+
 export const useTemplateCrud = ({
     templates,
     editingTemplate,
@@ -35,14 +74,26 @@ export const useTemplateCrud = ({
 }: UseTemplateCrudProps) => {
     const handleSaveTemplate = useCallback(
         async (newTemplateData: EvaluationTemplate, saveOperationExecute: any) => {
-            executeSaveTemplate({
-                newTemplateData,
-                saveOperationExecute,
-                editingTemplate,
-                setView,
-                setEditingTemplate,
-                firestoreActions,
-            });
+            await saveOperationExecute(
+                async () => {
+                    if (editingTemplate) {
+                        await updateExistingTemplate(editingTemplate, newTemplateData, firestoreActions);
+                    } else {
+                        await createNewTemplate(newTemplateData, firestoreActions);
+                    }
+                    return 'success';
+                },
+                {
+                    successMessage: editingTemplate
+                        ? '템플릿이 성공적으로 수정되었습니다.'
+                        : '템플릿이 성공적으로 추가되었습니다.',
+                    errorMessage: `템플릿 ${editingTemplate ? '수정' : '추가'} 중 오류가 발생했습니다.`,
+                    onSuccess: () => {
+                        setView('list');
+                        setEditingTemplate(null);
+                    },
+                }
+            );
         },
         [editingTemplate, setView, setEditingTemplate, firestoreActions]
     );
@@ -73,76 +124,6 @@ export const useTemplateCrud = ({
     return { handleSaveTemplate, handleEditTemplate, handleDuplicateTemplate, handleCancel };
 };
 
-interface SaveTemplateParams {
-    newTemplateData: EvaluationTemplate;
-    saveOperationExecute: any;
-    editingTemplate: EvaluationTemplate | null;
-    setView: React.Dispatch<React.SetStateAction<string>>;
-    setEditingTemplate: React.Dispatch<React.SetStateAction<EvaluationTemplate | null>>;
-    firestoreActions: FirestoreActions;
-}
-
-async function executeSaveTemplate({
-    newTemplateData,
-    saveOperationExecute,
-    editingTemplate,
-    setView,
-    setEditingTemplate,
-    firestoreActions,
-}: SaveTemplateParams) {
-    await saveOperationExecute(
-        async () => {
-            if (editingTemplate) {
-                // Update existing
-                const updatedData = updateTemplateWithHistory(editingTemplate, newTemplateData);
-                await firestoreActions.updateTemplate(editingTemplate.id as string, updatedData);
-            } else {
-                // Create new
-                const newTemplate = {
-                    ...newTemplateData,
-                    favorite: false,
-                    archived: false,
-                    version: 1,
-                    author: currentUser.name, // Ensure author is set
-                    lastUpdated: new Date().toISOString().split('T')[0],
-                };
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { id, ...templateToAdd } = newTemplate; // Remove fake ID if present
-                await firestoreActions.addTemplate(templateToAdd);
-            }
-            return 'success';
-        },
-        {
-            successMessage: editingTemplate
-                ? '템플릿이 성공적으로 수정되었습니다.'
-                : '템플릿이 성공적으로 추가되었습니다.',
-            errorMessage: `템플릿 ${editingTemplate ? '수정' : '추가'} 중 오류가 발생했습니다.`,
-            onSuccess: () => {
-                setView('list');
-                setEditingTemplate(null);
-            },
-        }
-    );
-}
-
-function updateTemplateWithHistory(currentTemplate: EvaluationTemplate, newData: EvaluationTemplate) {
-    const newHistoryEntry = createVersionHistoryEntry(currentTemplate);
-    const existingHistory = currentTemplate.versionHistory || [];
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...dataToUpdate } = newData; // Exclude ID from update data
-
-    return {
-        ...dataToUpdate,
-        version: (currentTemplate.version || 1) + 1,
-        // Preserve these unless explicitly handled differently
-        favorite: currentTemplate.favorite,
-        archived: currentTemplate.archived,
-        versionHistory: [...existingHistory, newHistoryEntry].slice(-10),
-        lastUpdated: new Date().toISOString().split('T')[0],
-        author: currentUser.name,
-    };
-}
-
 async function executeDuplicateTemplate(
     templateId: string | number,
     templates: EvaluationTemplate[],
@@ -169,7 +150,7 @@ async function executeDuplicateTemplate(
                 author: currentUser.name,
                 lastUpdated: new Date().toISOString().split('T')[0],
                 version: 1,
-                favorite: false,
+
                 archived: false,
             };
 

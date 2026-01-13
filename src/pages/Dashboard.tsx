@@ -1,14 +1,18 @@
 import { Button, ErrorBoundary, PageHeader } from '@/components/common';
 import { ChartSection, InsightSection, StatCard } from '@/components/dashboard';
-import { currentUser } from '@/constants';
+import { currentUser, REPORTING_CATEGORY_OPTIONS } from '@/constants';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDashboardStats } from '@/hooks';
 import { exportDashboardToPDF } from '@/services/pdfExportService';
 import { DownloadSimple } from '@phosphor-icons/react';
 import React, { memo, useRef, useState } from 'react';
 
 const Dashboard: React.FC = memo(() => {
+    const [reportingCategory, setReportingCategory] = useState('전체');
+    const reportingCategoryOptions = ['전체', ...REPORTING_CATEGORY_OPTIONS, '미지정'];
     const { isTeamLeader, teamName, stats, distributionData, deptPerformanceData, radarData, insights, topPerformers } =
-        useDashboardStats();
+        useDashboardStats({ reportingCategory });
 
     const dashboardRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState(false);
@@ -53,6 +57,28 @@ const Dashboard: React.FC = memo(() => {
                     </Button>
                 }
             />
+            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <Label className="text-sm font-semibold text-slate-700">리포팅 분류 기준</Label>
+                    <p className="text-xs text-slate-500 mt-1">
+                        팀별 카테고리와 별개로 대시보드 집계를 위한 기준입니다.
+                    </p>
+                </div>
+                <div className="w-full sm:w-64">
+                    <Select value={reportingCategory} onValueChange={setReportingCategory}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="리포팅 분류 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {reportingCategoryOptions.map((option) => (
+                                <SelectItem key={option} value={option}>
+                                    {option}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
             <div ref={dashboardRef}>
                 <ErrorBoundary
                     fallback={<div className="p-8 text-center text-slate-500">주요 지표를 불러올 수 없습니다.</div>}

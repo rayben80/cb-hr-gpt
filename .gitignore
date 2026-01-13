@@ -28,3 +28,5 @@ coverage/
 
 # Claude Code
 .claude/settings.local.json
+
+cb-hr-4b503-firebase-adminsdk-fbsvc-d2d26808f0.json

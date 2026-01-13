@@ -4,6 +4,9 @@
       "dataDir": "dataconnect/.dataconnect/pgliteData"
     }
   },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "functions": {
     "source": "functions"
   },

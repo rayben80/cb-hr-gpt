@@ -10,24 +10,40 @@ import {
     updateDoc,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { Team } from '../../constants';
+import { Team, initialTeamsData } from '../../constants';
 import { db } from '../../firebase';
 // import { useError } from '../../contexts/ErrorContext';
 
+const stripUndefined = (data: Record<string, unknown>) => {
+    Object.keys(data).forEach((key) => {
+        if (data[key] === undefined) {
+            delete data[key];
+        }
+    });
+    return data;
+};
+
 export const useFirestoreTeams = () => {
-    const [teams, setTeams] = useState<Team[]>([]);
-    const [loading, setLoading] = useState(true);
+    const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
+    const [teams, setTeams] = useState<Team[]>(() => (isE2EMock ? initialTeamsData : []));
+    const [loading, setLoading] = useState(!isE2EMock);
     // const { showError } = useError();
 
     useEffect(() => {
+        if (isE2EMock) {
+            setTeams(initialTeamsData);
+            setLoading(false);
+            return;
+        }
+
         const q = query(collection(db, 'teams'), orderBy('createdAt', 'asc')); // Assuming createdAt exists or order by name
 
         const unsubscribe = onSnapshot(
             q,
             (snapshot) => {
                 const teamsData = snapshot.docs.map((doc) => ({
-                    id: doc.id,
                     ...doc.data(),
+                    id: doc.id,
                 })) as Team[];
                 setTeams(teamsData);
                 setLoading(false);
@@ -40,7 +56,7 @@ export const useFirestoreTeams = () => {
         );
 
         return () => unsubscribe();
-    }, []);
+    }, [isE2EMock]);
 
     const addTeam = async (teamData: Omit<Team, 'id'>) => {
         try {
@@ -58,7 +74,8 @@ export const useFirestoreTeams = () => {
     const updateTeam = async (id: string, teamData: Partial<Team>) => {
         try {
             const teamRef = doc(db, 'teams', id);
-            await updateDoc(teamRef, teamData);
+            const payload = stripUndefined({ ...teamData });
+            await updateDoc(teamRef, payload);
         } catch (error) {
             console.error('Error updating team:', error);
             throw error;

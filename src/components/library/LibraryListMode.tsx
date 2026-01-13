@@ -1,5 +1,7 @@
+import { Plus } from '@phosphor-icons/react';
 import { memo, RefObject } from 'react';
 import { EvaluationTemplate } from '../../constants';
+import { Button, PageHeader } from '../common';
 import { LibraryContent } from './LibraryContent';
 import { LibraryToolbar } from './LibraryToolbar';
 import { SortField, SortOrder, ViewMode } from './toolbar/ToolbarSecondaryRow';
@@ -50,17 +52,28 @@ interface LibraryListModeProps {
     handleRestoreTemplate: (id: string | number, name: string) => void;
     handleDuplicateTemplate: (id: string | number) => void;
     setPreviewTemplate: (template: EvaluationTemplate | null) => void;
-    handleToggleFavorite: (id: string | number) => void;
     toggleSelectItem: (id: string | number) => void;
     selectedIds: Set<string | number>;
 
-    // Empty State Helpers
     onCreateTemplate: () => void;
+    handleLaunch: (id: string | number) => void;
+    seedMockData?: () => Promise<void>;
+    handleDeleteTemplate: (id: string | number, name: string) => void;
 }
 
 export const LibraryListMode = memo((props: LibraryListModeProps) => {
     return (
         <>
+            <PageHeader
+                title="평가 템플릿"
+                description="평가에 사용할 템플릿을 관리하세요."
+                action={
+                    <Button variant="default" onClick={props.onCreateNew} disabled={props.isBusy}>
+                        <Plus className="w-5 h-5 mr-2" weight="bold" />
+                        {props.isBusy ? '생성 중...' : '새 템플릿 생성'}
+                    </Button>
+                }
+            />
             <LibraryToolbar {...props} />
             <LibraryContent
                 isLoading={props.isLoading}
@@ -80,8 +93,10 @@ export const LibraryListMode = memo((props: LibraryListModeProps) => {
                 handleRestoreTemplate={props.handleRestoreTemplate}
                 handleDuplicateTemplate={props.handleDuplicateTemplate}
                 setPreviewTemplate={props.setPreviewTemplate}
-                handleToggleFavorite={props.handleToggleFavorite}
+                handleLaunch={props.handleLaunch}
                 toggleSelectItem={props.toggleSelectItem}
+                onSeedMockData={props.seedMockData}
+                handleDeleteTemplate={props.handleDeleteTemplate}
             />
         </>
     );

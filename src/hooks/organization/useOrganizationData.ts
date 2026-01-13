@@ -9,6 +9,7 @@ import { useNetworkStatus } from '../common/useNetworkStatus';
 import { useDatabaseSeeding } from './useDatabaseSeeding';
 import { useFirestoreMembers } from './useFirestoreMembers';
 import { useFirestoreTeams } from './useFirestoreTeams';
+import { sortMembersByOrder } from '../../utils/organizationUtils';
 
 /**
  * localStorage 키 상수
@@ -21,13 +22,14 @@ const STORAGE_KEYS = {
  * 조직 관리 데이터(본부, 팀, 파트, 구성원)를 위한 커스텀 훅
  */
 export const useOrganizationData = () => {
+    const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
     // Firestore Hooks
     const { teams: firestoreTeams, addTeam, updateTeam, deleteTeam, loading: teamsLoading } = useFirestoreTeams();
 
     const { showSuccess } = useError();
     const [confirmation, confirmationActions] = useConfirmation();
     const [seedOperation, seedOperationActions] = useAsyncOperation();
-    const networkState = useNetworkStatus();
+    const [networkState] = useNetworkStatus();
 
     const {
         members: firestoreMembers,
@@ -35,6 +37,7 @@ export const useOrganizationData = () => {
         updateMember,
         deleteMember,
         loading: membersLoading,
+        updateMemberOrder,
     } = useFirestoreMembers();
 
     // Derived state: Join Teams and Members
@@ -42,23 +45,16 @@ export const useOrganizationData = () => {
         if (!firestoreTeams || !firestoreMembers) return [];
         return firestoreTeams.map((team) => ({
             ...team,
-            members: firestoreMembers.filter((m) => m.teamId === team.id && !m.partId), // Direct members
+            members: sortMembersByOrder(firestoreMembers.filter((m) => m.teamId === team.id && !m.partId)), // Direct members
             parts: team.parts.map((part) => ({
                 ...part,
-                members: firestoreMembers.filter((m) => m.partId === part.id),
+                members: sortMembersByOrder(firestoreMembers.filter((m) => m.partId === part.id)),
             })),
         }));
     }, [firestoreTeams, firestoreMembers]);
 
-    // Backward compatibility for setTeams - DO NOT USE FOR LOGIC ANYMORE
-    // We need to refactor consumers to use atomic operations.
-    // For now, we provide a warning.
-    const setTeams = useCallback((..._args: any[]) => {
-        console.warn('setTeams is deprecated in favor of Firestore actions. Please update the consumer.');
-    }, []);
-
     const [headquarters, setHeadquarters] = useState<Headquarter[]>(() =>
-        loadFromStorage(STORAGE_KEYS.HEADQUARTERS, initialHeadquarters)
+        isE2EMock ? initialHeadquarters : loadFromStorage(STORAGE_KEYS.HEADQUARTERS, initialHeadquarters)
     );
 
     const [isLoading, setIsLoading] = useState(teamsLoading || membersLoading);
@@ -135,7 +131,6 @@ export const useOrganizationData = () => {
     return {
         // 상태 값
         teams,
-        setTeams, // Deprecated but kept for type compatibility
         headquarters,
         updateHeadquarter,
         addHeadquarter,
@@ -163,6 +158,7 @@ export const useOrganizationData = () => {
             addMember,
             updateMember,
             deleteMember,
+            updateMemberOrder,
         },
     };
 };

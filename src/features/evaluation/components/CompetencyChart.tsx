@@ -1,4 +1,5 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo } from 'react';
+import { ProgressBar } from '../../../components/feedback/Progress';
 
 export interface CompetencyChartProps {
     name: string;
@@ -6,17 +7,6 @@ export interface CompetencyChartProps {
     peerScore: number;
     finalScore: number;
 }
-
-const ProgressBar = memo(({ progress, className }: { progress: number; className: string }) => {
-    const ref = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        if (ref.current) {
-            ref.current.style.width = `${progress}%`;
-        }
-    }, [progress]);
-    return <div ref={ref} className={className} />;
-});
-ProgressBar.displayName = 'ProgressBar';
 
 export const CompetencyChart = memo<CompetencyChartProps>(({ name, selfScore, peerScore, finalScore }) => (
     <div className="py-4">
@@ -27,14 +17,14 @@ export const CompetencyChart = memo<CompetencyChartProps>(({ name, selfScore, pe
         <div className="space-y-2">
             <div className="flex items-center">
                 <span className="text-sm text-slate-500 w-20">본인 평가</span>
-                <div className="flex-1 bg-slate-200 rounded-full h-4">
-                    <ProgressBar progress={selfScore} className="bg-primary h-4 rounded-full" />
+                <div className="flex-1">
+                    <ProgressBar progress={selfScore} size="lg" color="primary" />
                 </div>
             </div>
             <div className="flex items-center">
                 <span className="text-sm text-slate-500 w-20">동료 평가</span>
-                <div className="flex-1 bg-slate-200 rounded-full h-4">
-                    <ProgressBar progress={peerScore} className="bg-primary h-4 rounded-full" />
+                <div className="flex-1">
+                    <ProgressBar progress={peerScore} size="lg" color="primary" />
                 </div>
             </div>
         </div>

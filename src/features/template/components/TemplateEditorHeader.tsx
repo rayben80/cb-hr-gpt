@@ -10,9 +10,7 @@ interface TemplateEditorHeaderProps {
     onSave: () => void;
     onCancel: () => void;
     categoryOptions: string[];
-    isFavorite: boolean;
     isArchived: boolean;
-    onToggleFavorite: () => void;
     onArchive: () => void;
     onRestore: () => void;
     tagProps: ReturnType<typeof useTemplateTags>;
@@ -26,9 +24,7 @@ export const TemplateEditorHeader = memo(
         onSave,
         onCancel,
         categoryOptions,
-        isFavorite,
         isArchived,
-        onToggleFavorite,
         onArchive,
         onRestore,
         tagProps,
@@ -40,11 +36,9 @@ export const TemplateEditorHeader = memo(
                     templateId={template.id}
                     title={template.id ? '템플릿 수정' : '새 템플릿 만들기'}
                     description="평가 템플릿의 기본 정보를 입력하고 항목을 구성하세요."
-                    isFavorite={isFavorite}
                     isArchived={isArchived}
                     onCancel={onCancel}
                     onSave={onSave}
-                    onToggleFavorite={onToggleFavorite}
                     onArchive={onArchive}
                     onRestore={onRestore}
                     validationMessages={validationMessages}

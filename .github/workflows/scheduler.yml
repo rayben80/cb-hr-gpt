@@ -1,0 +1,27 @@
+name: Recurring Evaluation Scheduler
+
+on:
+  schedule:
+    # Runs at 15:00 UTC every day, which is 00:00 KST
+    - cron: "0 15 * * *"
+  workflow_dispatch: # Allows manual run for testing
+
+jobs:
+  run-scheduler:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install Dependencies
+        run: npm install firebase-admin --no-save
+
+      - name: Run Scheduler Script
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/daily_scheduler.mjs

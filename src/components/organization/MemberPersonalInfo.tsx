@@ -1,9 +1,7 @@
 import { parse } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import React from 'react';
-import DatePicker from 'react-datepicker';
 import { DEFAULT_MEMBER_ROLE, MEMBER_ROLE_OPTIONS } from '../../utils/memberRoleUtils';
-import { InputField } from '../common';
+import { DatePicker, InputField } from '../common';
 
 interface MemberFormData {
     name: string;
@@ -85,14 +83,9 @@ export const MemberPersonalInfo: React.FC<MemberPersonalInfoProps> = ({
                     id="hireDate"
                     selected={formData.hireDate ? parse(formData.hireDate, 'yyyy-MM-dd', new Date()) : null}
                     onChange={onDateChange}
-                    dateFormat="yyyy-MM-dd"
-                    locale={ko}
                     showYearDropdown
                     showMonthDropdown
                     dropdownMode="select"
-                    placeholderText="YYYY-MM-DD"
-                    className="block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                    wrapperClassName="w-full"
                 />
             </div>
         </>

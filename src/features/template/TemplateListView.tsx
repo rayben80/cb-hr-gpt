@@ -9,11 +9,12 @@ interface TemplateListViewProps {
     onRestore: (id: string | number, name: string) => void;
     onDuplicate: (id: string | number) => void;
     onPreview: (template: EvaluationTemplate) => void;
-    onToggleFavorite: (id: string | number) => void;
+    onLaunch: (id: string | number) => void;
     isBusy: boolean;
     isSelectionMode?: boolean;
     selectedIds?: Set<string | number>;
     onToggleSelect?: (id: string | number) => void;
+    onDelete: (id: string | number, name: string) => void; // Added
 }
 
 const TemplateListView: React.FC<TemplateListViewProps> = memo(
@@ -24,16 +25,16 @@ const TemplateListView: React.FC<TemplateListViewProps> = memo(
         onRestore,
         onDuplicate,
         onPreview,
-        onToggleFavorite,
+        onLaunch,
         isBusy,
         isSelectionMode = false,
         selectedIds = new Set(),
         onToggleSelect,
+        onDelete,
     }) => {
         const columns = useMemo(
             () => [
                 ...(isSelectionMode ? [{ key: 'select', label: '', width: 'w-10' }] : []),
-                { key: 'favorite', label: '', width: 'w-10' },
                 { key: 'name', label: '템플릿 이름', width: 'flex-1' },
                 { key: 'type', label: '유형', width: 'w-28' },
                 { key: 'category', label: '카테고리', width: 'w-24' },
@@ -71,11 +72,12 @@ const TemplateListView: React.FC<TemplateListViewProps> = memo(
                             onRestore={onRestore}
                             onDuplicate={onDuplicate}
                             onPreview={onPreview}
-                            onToggleFavorite={onToggleFavorite}
+                            onLaunch={onLaunch}
                             isBusy={isBusy}
                             isSelectionMode={isSelectionMode}
                             isSelected={selectedIds.has(template.id)}
                             onToggleSelect={onToggleSelect}
+                            onDelete={onDelete}
                         />
                     ))}
                 </div>

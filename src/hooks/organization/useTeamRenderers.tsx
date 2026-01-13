@@ -21,7 +21,6 @@ interface UseTeamRenderersOptions {
     // Team handlers
     openTeamModal: (mode: 'add' | 'edit', team: Team | null) => void;
     handleDeleteTeam: (teamId: string) => void;
-    handleUpdateTeam: (teamId: string, updates: Partial<Team>) => void;
     handleUpdateMember: (member: Member, isEditing: boolean, options?: SaveMemberOptions) => Promise<void>;
     confirmationActions: ConfirmationActions;
 }
@@ -39,7 +38,6 @@ export function useTeamRenderers({
     handleDeletePart,
     openTeamModal,
     handleDeleteTeam,
-    handleUpdateTeam,
     handleUpdateMember,
     confirmationActions,
 }: UseTeamRenderersOptions) {
@@ -53,13 +51,11 @@ export function useTeamRenderers({
                 onEditMember={handleEditMember}
                 onDeleteMember={handleDeleteMember}
                 onUpdateMember={handleUpdateMember}
-                onDropMemberInPart={(memberId, teamId, partId) => moveMemberToTeamPart(memberId, teamId, partId)}
                 onAddPart={(teamId) => openPartModal('add', { teamId })}
                 onEditPart={(teamId, part) => openPartModal('edit', { teamId, part })}
                 onDeletePart={handleDeletePart}
                 onEditTeam={(teamData) => openTeamModal('edit', teamData)}
                 onDeleteTeam={(teamId) => handleDeleteTeam(teamId)}
-                onUpdateTeam={handleUpdateTeam}
                 onMoveMember={openMoveModal}
                 confirmationActions={confirmationActions}
                 searchTerm={searchTerm}
@@ -71,12 +67,10 @@ export function useTeamRenderers({
             handleAddMember,
             handleEditMember,
             handleDeleteMember,
-            moveMemberToTeamPart,
             openPartModal,
             handleDeletePart,
             openTeamModal,
             handleDeleteTeam,
-            handleUpdateTeam,
             openMoveModal,
             searchTerm,
             statusFilter,
@@ -94,7 +88,7 @@ export function useTeamRenderers({
                 onAddMember={handleAddMember}
                 onEditMember={handleEditMember}
                 onDeleteMember={handleDeleteMember}
-                onDropMemberInPart={(memberId, teamId, partId) => moveMemberToTeamPart(memberId, teamId, partId)}
+                onDropMemberInPart={moveMemberToTeamPart}
                 onAddPart={(teamId) => openPartModal('add', { teamId })}
                 onEditPart={(teamId, part) => openPartModal('edit', { teamId, part })}
                 onDeletePart={handleDeletePart}

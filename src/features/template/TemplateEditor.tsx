@@ -12,12 +12,10 @@ export interface TemplateEditorProps {
     onCancel: () => void;
     initialTemplate?: EvaluationTemplate | null;
     categoryOptions: string[];
-    onToggleFavorite?: (() => void) | undefined;
-    onArchive?: (() => void) | undefined;
-    onRestore?: (() => void) | undefined;
-    isFavorite?: boolean;
     isArchived?: boolean;
     existingTemplates?: EvaluationTemplate[];
+    onArchive?: () => void;
+    onRestore?: () => Promise<void> | void | null;
 }
 
 const TemplateEditor = memo((props: TemplateEditorProps) => {
@@ -26,12 +24,11 @@ const TemplateEditor = memo((props: TemplateEditorProps) => {
         onCancel,
         initialTemplate = null,
         categoryOptions,
-        onToggleFavorite = () => {},
-        onArchive = () => {},
-        onRestore = () => {},
-        isFavorite = false,
+
         isArchived = false,
         existingTemplates = [],
+        onArchive = () => {},
+        onRestore = async () => {},
     } = props;
 
     const {
@@ -73,9 +70,7 @@ const TemplateEditor = memo((props: TemplateEditorProps) => {
                 onSave={handleSave}
                 onCancel={handleCancelClick}
                 categoryOptions={categoryOptions}
-                isFavorite={isFavorite}
                 isArchived={isArchived}
-                onToggleFavorite={onToggleFavorite}
                 onArchive={onArchive}
                 onRestore={onRestore}
                 tagProps={tagProps}

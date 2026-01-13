@@ -1,7 +1,6 @@
 import { EvaluationItem, EvaluationTemplate } from '../constants';
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-    typeof value === 'object' && value !== null;
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
 const isValidEvaluationItem = (value: unknown): value is EvaluationItem => {
     if (!isRecord(value)) return false;
@@ -44,7 +43,6 @@ export const exportTemplates = (templates: EvaluationTemplate[], filename?: stri
         ...template,
         // 내보내기 시 archived와 favorite은 false로 초기화
         archived: false,
-        favorite: false,
     }));
 
     const jsonString = JSON.stringify(dataToExport, null, 2);
@@ -99,7 +97,7 @@ export const importTemplates = (file: File): Promise<EvaluationTemplate[]> => {
                             ...item,
                             id: Date.now() + index + Math.random(),
                             lastUpdated: new Date().toISOString().split('T')[0],
-                            favorite: false,
+
                             archived: false,
                         });
                     } else {

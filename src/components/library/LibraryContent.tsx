@@ -25,8 +25,10 @@ interface LibraryContentProps {
     handleRestoreTemplate: (id: string | number, name: string) => void;
     handleDuplicateTemplate: (id: string | number) => void;
     setPreviewTemplate: (template: EvaluationTemplate | null) => void;
-    handleToggleFavorite: (id: string | number) => void;
+    handleLaunch: (id: string | number) => void;
     toggleSelectItem: (id: string | number) => void;
+    onSeedMockData?: (() => Promise<void>) | undefined;
+    handleDeleteTemplate: (id: string | number, name: string) => void;
 }
 
 export const LibraryContent = memo((props: LibraryContentProps) => {
@@ -48,8 +50,10 @@ export const LibraryContent = memo((props: LibraryContentProps) => {
         handleRestoreTemplate,
         handleDuplicateTemplate,
         setPreviewTemplate,
-        handleToggleFavorite,
+        handleLaunch,
         toggleSelectItem,
+        onSeedMockData,
+        handleDeleteTemplate,
     } = props;
 
     if (isLoading) {
@@ -92,6 +96,7 @@ export const LibraryContent = memo((props: LibraryContentProps) => {
                 categoryFilter={categoryFilter}
                 showArchived={showArchived}
                 onCreateTemplate={onCreateTemplate}
+                onSeedMockData={onSeedMockData}
             />
         );
     }
@@ -104,11 +109,12 @@ export const LibraryContent = memo((props: LibraryContentProps) => {
             onRestore={handleRestoreTemplate}
             onDuplicate={handleDuplicateTemplate}
             onPreview={setPreviewTemplate}
-            onToggleFavorite={handleToggleFavorite}
+            onLaunch={handleLaunch}
             isBusy={isBusy}
             isSelectionMode={isSelectionMode}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelectItem}
+            onDelete={handleDeleteTemplate}
         />
     ) : (
         <TemplateListView
@@ -118,11 +124,12 @@ export const LibraryContent = memo((props: LibraryContentProps) => {
             onRestore={handleRestoreTemplate}
             onDuplicate={handleDuplicateTemplate}
             onPreview={setPreviewTemplate}
-            onToggleFavorite={handleToggleFavorite}
+            onLaunch={handleLaunch}
             isBusy={isBusy}
             isSelectionMode={isSelectionMode}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelectItem}
+            onDelete={handleDeleteTemplate}
         />
     );
 });

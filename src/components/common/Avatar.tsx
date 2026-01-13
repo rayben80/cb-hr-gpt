@@ -1,5 +1,6 @@
 import { AvatarFallback, AvatarImage, Avatar as UiAvatar } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { getAvatarInitials } from '@/utils/avatarUtils';
 import React, { useState } from 'react';
 
 interface AvatarProps extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -9,11 +10,12 @@ interface AvatarProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 export const Avatar: React.FC<AvatarProps> = ({ src, alt, fallback, className = '', ...props }) => {
     const [hasError, setHasError] = useState(false);
     const showImage = src && !hasError;
+    const fallbackText = getAvatarInitials(fallback ?? '');
 
     return (
         <UiAvatar className={cn('h-6 w-6', className)}>
             {showImage && <AvatarImage src={src} alt={alt} onError={() => setHasError(true)} {...props} />}
-            {!showImage && <AvatarFallback>{fallback?.slice(0, 2).toUpperCase() || '?'}</AvatarFallback>}
+            {!showImage && <AvatarFallback>{fallbackText}</AvatarFallback>}
         </UiAvatar>
     );
 };

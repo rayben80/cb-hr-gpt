@@ -1,10 +1,13 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable max-nested-callbacks */
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import { Member as MemberType, Part, Team } from '../../constants';
 import { ConfirmationActions } from '../../hooks/common/useConfirmation';
-import { calculateTotalTeamMembers } from '../../utils/organizationUtils';
+import { getDisplayAvatarUrl } from '../../utils/avatarUtils';
 import { DEFAULT_MEMBER_ROLE, normalizeMemberRole } from '../../utils/memberRoleUtils';
+import { calculateTotalTeamMembers } from '../../utils/organizationUtils';
 import { Avatar, AvatarGroup, Badge, Card, Modal } from '../common';
 import { Member } from './Member';
 import { PartSection } from './PartSection';
@@ -60,7 +63,7 @@ const MemberAvatarGroup = memo(
                     {members.map((m) => (
                         <Avatar
                             key={m.id}
-                            src={m.avatar}
+                            src={getDisplayAvatarUrl(m.name, m.avatar, m.email)}
                             fallback={m.name}
                             alt={m.name}
                             title={`${m.name} (${m.role})`}
@@ -100,14 +103,12 @@ interface TeamCardProps {
     onAddMember: (teamId: string, partId: string) => void;
     onEditMember: (member: MemberType) => void;
     onDeleteMember: (member: MemberType) => void;
-    onDropMemberInPart: (memberId: string, teamId: string, partId: string) => void;
     onAddPart: (teamId: string) => void;
     onEditPart: (teamId: string, part: Part) => void;
     onDeletePart: (teamId: string, partId: string) => void;
     onEditTeam: (team: Team) => void;
     onDeleteTeam: (teamId: string) => void;
 
-    onUpdateTeam: (teamId: string, updates: Partial<Team>) => void;
     onUpdateMember: (member: MemberType, isEditing: boolean, options?: SaveMemberOptions) => Promise<void>;
     onMoveMember: (member: MemberType) => void;
     confirmationActions: ConfirmationActions;
@@ -122,13 +123,11 @@ export const TeamCard: React.FC<TeamCardProps> = memo(
         onAddMember,
         onEditMember,
         onDeleteMember,
-        onDropMemberInPart,
         onAddPart,
         onEditPart,
         onDeletePart,
         onEditTeam,
         onDeleteTeam,
-        onUpdateTeam,
         onUpdateMember,
         onMoveMember,
         confirmationActions,
@@ -188,30 +187,25 @@ export const TeamCard: React.FC<TeamCardProps> = memo(
                             actualPartId = part?.id ?? undefined;
                         }
 
-                        // Update Team Lead property
-                        onUpdateTeam(team.id, { lead: member.name });
-
                         // Update Member Role to "팀장"
                         const newRole = '팀장';
                         const nextRoleBeforeLead =
                             member.role === '팀장' ? member.roleBeforeLead : normalizeMemberRole(member.role);
-                        if (member.role !== newRole) {
-                            await onUpdateMember(
-                                {
-                                    ...member,
-                                    role: newRole,
-                                    roleBeforeLead: nextRoleBeforeLead,
-                                    teamId: team.id,
-                                    partId: actualPartId ?? '',
-                                } as any,
-                                true,
-                                { keepOpen: false }
-                            );
-                        }
+                        await onUpdateMember(
+                            {
+                                ...member,
+                                role: newRole,
+                                roleBeforeLead: nextRoleBeforeLead,
+                                teamId: team.id,
+                                partId: actualPartId ?? '',
+                            } as any,
+                            true,
+                            { keepOpen: false, setTeamLead: true }
+                        );
                     },
                 });
             },
-            [team.id, team.name, team.parts, onUpdateTeam, onUpdateMember, confirmationActions]
+            [team.id, team.name, team.parts, onUpdateMember, confirmationActions]
         );
 
         const handleRemoveTeamLead = useCallback(
@@ -232,9 +226,6 @@ export const TeamCard: React.FC<TeamCardProps> = memo(
                             targetPart = team.parts.find((p) => p.id === actualPartId);
                         }
 
-                        // Clear Team Lead property
-                        onUpdateTeam(team.id, { lead: '' });
-
                         // Restore Member Role to default
                         const restoredRole = member.roleBeforeLead
                             ? normalizeMemberRole(member.roleBeforeLead)
@@ -250,17 +241,22 @@ export const TeamCard: React.FC<TeamCardProps> = memo(
                                 partId: actualPartId ?? '',
                             } as any,
                             true,
-                            { keepOpen: false }
+                            { keepOpen: false, clearTeamLead: true }
                         );
                     },
                 });
             },
-            [team.id, team.parts, onUpdateTeam, onUpdateMember, confirmationActions]
+            [team.id, team.parts, onUpdateMember, confirmationActions]
         );
 
-        // Member list modal
         const [showMemberList, setShowMemberList] = useState(false);
         const handleViewAllMembers = useCallback(() => setShowMemberList(true), []);
+
+        // droppable for the Team Card itself (allows dropping directly onto the team)
+        const { setNodeRef } = useDroppable({
+            id: `team-${team.id}`,
+            data: { type: 'team', id: team.id },
+        });
 
         if (!shouldRender) return null;
 
@@ -269,6 +265,7 @@ export const TeamCard: React.FC<TeamCardProps> = memo(
                 <Card
                     className={`border-l-4 ${theme.border} p-3 sm:p-4 rounded-xl space-y-2 flex flex-col h-full hover:shadow-primary-lg`}
                     hoverEffect
+                    ref={setNodeRef}
                 >
                     <TeamCardHeader
                         teamName={team.name}
@@ -290,30 +287,35 @@ export const TeamCard: React.FC<TeamCardProps> = memo(
                         <div className="space-y-1 sm:space-y-2 flex-grow">
                             {/* Direct team members section */}
                             {directMembers.length > 0 && (
-                                <div className="p-2 bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className={`w-1.5 h-1.5 rounded-full ${theme.partIndicator}`} />
-                                        <span className="text-xs font-medium text-slate-600">팀 직속</span>
-                                        <Badge variant="outline" className="text-xs px-1.5 py-0">
-                                            {directMembers.length}명
-                                        </Badge>
+                                <SortableContext
+                                    items={directMembers.map((m) => m.id)}
+                                    strategy={verticalListSortingStrategy}
+                                >
+                                    <div className="p-2 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className={`w-1.5 h-1.5 rounded-full ${theme.partIndicator}`} />
+                                            <span className="text-xs font-medium text-slate-600">팀 직속</span>
+                                            <Badge variant="outline" className="text-xs px-1.5 py-0">
+                                                {directMembers.length}명
+                                            </Badge>
+                                        </div>
+                                        <div className="divide-y divide-border/50 border-t border-slate-200/50 mt-1">
+                                            {directMembers.map((member) => (
+                                                <Member
+                                                    key={member.id}
+                                                    member={member}
+                                                    onEdit={onEditMember}
+                                                    onDelete={onDeleteMember}
+                                                    onMove={onMoveMember}
+                                                    baseDate={baseDate}
+                                                    isTeamLead={derivedTeamLead === member.name}
+                                                    onAssignTeamLead={handleAssignTeamLead}
+                                                    onRemoveTeamLead={handleRemoveTeamLead}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="divide-y divide-border/50 border-t border-slate-200/50 mt-1">
-                                        {directMembers.map((member) => (
-                                            <Member
-                                                key={member.id}
-                                                member={member}
-                                                onEdit={onEditMember}
-                                                onDelete={onDeleteMember}
-                                                onMove={onMoveMember}
-                                                baseDate={baseDate}
-                                                isTeamLead={derivedTeamLead === member.name}
-                                                onAssignTeamLead={handleAssignTeamLead}
-                                                onRemoveTeamLead={handleRemoveTeamLead}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
+                                </SortableContext>
                             )}
                             {team.parts.map((part) => (
                                 <PartSection
@@ -323,7 +325,6 @@ export const TeamCard: React.FC<TeamCardProps> = memo(
                                     onAddMember={onAddMember}
                                     onEditMember={onEditMember}
                                     onDeleteMember={onDeleteMember}
-                                    onDropMemberInPart={onDropMemberInPart}
                                     onEditPart={onEditPart}
                                     onDeletePart={onDeletePart}
                                     onMoveMember={onMoveMember}
@@ -356,7 +357,11 @@ export const TeamCard: React.FC<TeamCardProps> = memo(
                                         setShowMemberList(false);
                                     }}
                                 >
-                                    <Avatar src={member.avatar} fallback={member.name} alt={member.name} />
+                                    <Avatar
+                                        src={getDisplayAvatarUrl(member.name, member.avatar, member.email)}
+                                        fallback={member.name}
+                                        alt={member.name}
+                                    />
                                     <div className="flex-1 min-w-0">
                                         <div className="font-medium text-sm truncate">{member.name}</div>
                                         <div className="text-xs text-muted-foreground truncate">{member.role}</div>

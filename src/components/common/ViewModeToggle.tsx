@@ -18,7 +18,7 @@ interface ViewModeToggleProps {
  */
 export const ViewModeToggle: React.FC<ViewModeToggleProps> = memo(
     ({ viewMode, onViewModeChange, className, useTableMode = false }) => {
-        const baseButtonClass = 'flex items-center justify-center w-9 h-9 rounded-md transition-all';
+        const baseButtonClass = 'flex items-center justify-center w-10 h-10 rounded-md transition-all';
         const activeClass = 'bg-background text-primary shadow-sm ring-1 ring-primary/20';
         const inactiveClass = 'text-muted-foreground hover:text-foreground hover:bg-background/50';
 
@@ -27,14 +27,14 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = memo(
         const listMode = useTableMode ? 'table' : 'list';
 
         return (
-            <div className={cn('flex items-center gap-1 bg-muted rounded-lg p-1 border border-border', className)}>
+            <div className={cn('flex items-center gap-1 bg-muted rounded-xl p-1 border border-border', className)}>
                 <button
                     type="button"
                     onClick={() => onViewModeChange('grid')}
                     className={cn(baseButtonClass, viewMode === 'grid' ? activeClass : inactiveClass)}
                     title="그리드 뷰"
                     aria-label="그리드 뷰"
-                    aria-pressed={viewMode === 'grid' ? 'true' : 'false'}
+                    aria-pressed={viewMode === 'grid'}
                 >
                     <SquaresFour className="w-5 h-5" weight="regular" />
                 </button>
@@ -44,7 +44,7 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = memo(
                     className={cn(baseButtonClass, isListActive ? activeClass : inactiveClass)}
                     title="리스트 뷰"
                     aria-label="리스트 뷰"
-                    aria-pressed={isListActive ? 'true' : 'false'}
+                    aria-pressed={isListActive}
                 >
                     <List className="w-5 h-5" weight="regular" />
                 </button>

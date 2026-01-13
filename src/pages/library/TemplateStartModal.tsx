@@ -1,6 +1,7 @@
 import { FileText } from '@phosphor-icons/react';
 import { memo } from 'react';
 import { Button } from '../../components/common';
+import { Modal, ModalFooter, ModalHeader } from '../../components/common/Modal';
 import { TEMPLATE_TYPE_OPTIONS } from '../../constants';
 
 interface TemplateStartModalProps {
@@ -11,18 +12,18 @@ interface TemplateStartModalProps {
 
 export const TemplateStartModal = memo(({ onClose, onSelectBlank, onSelectPreset }: TemplateStartModalProps) => {
     return (
-        <div
-            className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4"
-            onClick={onClose}
+        <Modal
+            open={true}
+            onOpenChange={(open) => !open && onClose()}
+            maxWidth="sm:max-w-lg"
+            className="p-0"
+            bodyClassName="p-0"
         >
-            <div
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="p-6 border-b border-slate-200">
+            <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden">
+                <ModalHeader>
                     <h2 className="text-xl font-bold text-slate-900">새 템플릿 만들기</h2>
                     <p className="text-sm text-slate-500 mt-1">시작 방법을 선택하세요</p>
-                </div>
+                </ModalHeader>
                 <div className="p-6 space-y-4">
                     {/* 빈 템플릿 */}
                     <button
@@ -57,13 +58,13 @@ export const TemplateStartModal = memo(({ onClose, onSelectBlank, onSelectPreset
                         </div>
                     </div>
                 </div>
-                <div className="p-6 border-t border-slate-200 flex justify-end">
+                <ModalFooter className="flex justify-end">
                     <Button variant="outline" onClick={onClose}>
                         취소
                     </Button>
-                </div>
+                </ModalFooter>
             </div>
-        </div>
+        </Modal>
     );
 });
 

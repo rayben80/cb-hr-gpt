@@ -1,5 +1,7 @@
-import { Bell, Info, ShieldCheck, Sun, User } from '@phosphor-icons/react';
+import { Bell, Info, ShieldCheck, Sun, User, UserCheck } from '@phosphor-icons/react';
 import { useState } from 'react';
+import { useRole } from '../contexts/RoleContext';
+import { AccessApprovalSettings } from './settings/AccessApprovalSettings';
 import { AppearanceSettings } from './settings/AppearanceSettings';
 import { NotificationSettings } from './settings/NotificationSettings';
 import { ProfileSettings } from './settings/ProfileSettings';
@@ -7,11 +9,13 @@ import { SecuritySettings } from './settings/SecuritySettings';
 
 const SettingsPage = () => {
     const [activeTab, setActiveTab] = useState('프로필');
+    const { canApproveAccess } = useRole();
     const settingsTabs: { id: string; label: string; icon: React.ElementType }[] = [
         { id: '프로필', label: '프로필', icon: User },
         { id: '알림', label: '알림 및 일정', icon: Bell },
         { id: '화면', label: '화면 설정', icon: Sun },
         { id: '보안', label: '보안 및 계정', icon: ShieldCheck },
+        ...(canApproveAccess ? [{ id: '승인', label: '승인 관리', icon: UserCheck }] : []),
     ];
 
     const renderContent = () => {
@@ -24,6 +28,8 @@ const SettingsPage = () => {
                 return <NotificationSettings />;
             case '화면':
                 return <AppearanceSettings />;
+            case '승인':
+                return <AccessApprovalSettings />;
             default:
                 return <ProfileSettings />;
         }

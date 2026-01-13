@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { FileText, Plus } from '@phosphor-icons/react';
-import { memo } from 'react';
+import { Database, FileText, Plus } from '@phosphor-icons/react';
+import { memo, useState } from 'react';
 
 interface LibraryEmptyStateProps {
     searchTerm: string;
@@ -8,11 +8,30 @@ interface LibraryEmptyStateProps {
     categoryFilter: string;
     showArchived: boolean;
     onCreateTemplate: () => void;
+    onSeedMockData?: (() => Promise<void>) | undefined;
 }
 
 export const LibraryEmptyState = memo(
-    ({ searchTerm, typeFilter, categoryFilter, showArchived, onCreateTemplate }: LibraryEmptyStateProps) => {
+    ({
+        searchTerm,
+        typeFilter,
+        categoryFilter,
+        showArchived,
+        onCreateTemplate,
+        onSeedMockData,
+    }: LibraryEmptyStateProps) => {
         const hasFilters = searchTerm.trim() || typeFilter !== '전체' || categoryFilter !== '전체';
+        const [isSeeding, setIsSeeding] = useState(false);
+
+        const handleSeed = async () => {
+            if (!onSeedMockData) return;
+            setIsSeeding(true);
+            try {
+                await onSeedMockData();
+            } finally {
+                setIsSeeding(false);
+            }
+        };
 
         return (
             <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -37,12 +56,19 @@ export const LibraryEmptyState = memo(
                         : '첫 번째 템플릿을 만들어 팀의 평가 프로세스를 시작하세요.'}
                 </p>
 
-                {/* Action Button */}
+                {/* Action Buttons */}
                 {!hasFilters && !showArchived && (
-                    <Button onClick={onCreateTemplate} variant="default">
-                        <Plus className="w-5 h-5 mr-2" weight="bold" />
-                        템플릿 생성
-                    </Button>
+                    <div className="flex gap-3">
+                        <Button onClick={onCreateTemplate} variant="default">
+                            <Plus className="w-5 h-5 mr-2" weight="bold" />새 템플릿 생성
+                        </Button>
+                        {onSeedMockData && (
+                            <Button onClick={handleSeed} variant="outline" disabled={isSeeding}>
+                                <Database className="w-5 h-5 mr-2" weight="regular" />
+                                {isSeeding ? '추가 중...' : '샘플 데이터 추가'}
+                            </Button>
+                        )}
+                    </div>
                 )}
             </div>
         );

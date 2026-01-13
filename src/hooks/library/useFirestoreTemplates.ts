@@ -2,7 +2,7 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateD
 import { useEffect, useState } from 'react';
 import { EvaluationTemplate } from '../../constants';
 import { useError } from '../../contexts/ErrorContext';
-import { db } from '../../firebaseConfig';
+import { db } from '../../firebase';
 
 export const useFirestoreTemplates = () => {
     const [templates, setTemplates] = useState<EvaluationTemplate[]>([]);

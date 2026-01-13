@@ -1,6 +1,7 @@
 import { Envelope, PenNib, UploadSimple } from '@phosphor-icons/react';
 import { SettingsCard } from '../../components/settings/SettingsCard';
 import { currentUser } from '../../constants';
+import { getDisplayAvatarUrl } from '../../utils/avatarUtils';
 import { SectionHeader } from './SettingsComponents';
 
 export const ProfileSettings = () => {
@@ -14,7 +15,7 @@ export const ProfileSettings = () => {
                     <div className="relative">
                         <img
                             className="h-20 w-20 rounded-full object-cover border-4 border-white shadow-sm"
-                            src={currentUser.avatar}
+                            src={getDisplayAvatarUrl(currentUser.name, null, currentUser.email)}
                             alt="User avatar"
                         />
                         <div

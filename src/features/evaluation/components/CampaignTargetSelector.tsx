@@ -29,8 +29,8 @@ export const CampaignTargetSelector: React.FC<CampaignTargetSelectorProps> = mem
                 <h3 className="text-lg font-semibold text-slate-800 mb-4">평가 대상자(피평가자)를 선택해주세요.</h3>
                 <div className="bg-primary/10 text-primary p-3 rounded-lg mb-4 text-sm">
                     <Info className="w-4 h-4 inline mr-1 mb-0.5" weight="regular" />
-                    <strong>안내:</strong> 선택된 인원은 평가를 받는 <u>대상자</u>입니다. 본인 평가는 대상자가 스스로를
-                    평가하며, 동료/하향 평가는 추후 평가자가 매칭됩니다.
+                    <strong>안내:</strong> 선택된 인원은 평가를 받는 <u>대상자</u>입니다. 동료(PEER) 평가는 동료만,
+                    다면 평가는 상사/동료/본인 등 복수 관계로 다음 단계에서 평가자를 지정합니다.
                 </div>
                 <p className="text-sm text-slate-500 mb-4">재직/인턴 구성원만 표시됩니다.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[450px]">

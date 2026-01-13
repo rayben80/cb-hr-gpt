@@ -38,13 +38,13 @@ export const TemplateItemActionButtons = memo(
                             onClick={() => addItem('정량')}
                             className="w-full flex items-center justify-center gap-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 p-3 rounded-lg border-2 border-dashed border-green-200 transition-colors"
                         >
-                            <Plus className="w-5 h-5" weight="bold" /> 정량 항목 추가
+                            <Plus className="w-5 h-5" weight="bold" /> 정량(KPI) 항목 추가
                         </button>
                         <button
                             onClick={() => addItem('정성')}
                             className="w-full flex items-center justify-center gap-2 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 p-3 rounded-lg border-2 border-dashed border-primary/20 transition-colors"
                         >
-                            <Plus className="w-5 h-5" weight="bold" /> 정성 항목 추가
+                            <Plus className="w-5 h-5" weight="bold" /> 정성(서술) 항목 추가
                         </button>
                     </>
                 ) : (
@@ -71,7 +71,7 @@ export const TemplateItemActionButtons = memo(
                         disabled={isArchived}
                         className="w-full flex items-center justify-center gap-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 p-3 rounded-lg border border-purple-200 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <Sparkle className="w-5 h-5" weight="regular" /> 추천 항목 불러오기
+                        <Sparkle className="w-5 h-5" weight="regular" /> 추천 템플릿 불러오기
                     </button>
                 )}
                 {existingTemplatesCount > 0 && (

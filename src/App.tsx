@@ -1,10 +1,9 @@
 import ErrorBoundary from '@/components/feedback/ErrorBoundary';
 import { ErrorLogModal } from '@/components/feedback/ErrorLogModal';
-import ErrorToast from '@/components/feedback/ErrorToast';
 import { Layout, SidebarPageKey } from '@/components/layout/Layout';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { ErrorProvider } from '@/contexts/ErrorContext';
 import { RoleProvider, useRole } from '@/contexts/RoleContext';
+import AccessPending from '@/pages/AccessPending';
 import Dashboard from '@/pages/Dashboard';
 import EvaluationLibrary from '@/pages/EvaluationLibrary';
 import EvaluationManagement from '@/pages/EvaluationManagement';
@@ -19,22 +18,21 @@ const App = () => {
     return (
         <ErrorBoundary>
             <QueryProvider>
-                <ErrorProvider>
-                    <AuthProvider>
-                        <RoleProvider>
-                            <AppContent />
-                            <Toaster position="top-right" richColors />
-                        </RoleProvider>
-                    </AuthProvider>
-                </ErrorProvider>
+                <AuthProvider>
+                    <RoleProvider>
+                        <AppContent />
+                        <Toaster position="top-right" richColors />
+                    </RoleProvider>
+                </AuthProvider>
             </QueryProvider>
         </ErrorBoundary>
     );
 };
 
 const AppContent = () => {
-    const { currentUser, loading } = useAuth();
+    const { currentUser, loading, accessStatus } = useAuth();
     const { role } = useRole();
+    const isE2EBypass = import.meta.env.VITE_E2E_BYPASS_AUTH === 'true';
     const [isSidebarOpen, setSidebarOpen] = useState(() =>
         typeof window !== 'undefined' ? window.innerWidth > 1024 : true
     );
@@ -90,8 +88,12 @@ const AppContent = () => {
         return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
 
-    if (!currentUser) {
+    if (!currentUser && !isE2EBypass) {
         return <Login />;
+    }
+
+    if (!isE2EBypass && accessStatus !== 'approved') {
+        return <AccessPending />;
     }
 
     return (
@@ -105,7 +107,6 @@ const AppContent = () => {
             >
                 <ErrorBoundary>{renderPage()}</ErrorBoundary>
             </Layout>
-            <ErrorToast />
             <ErrorLogModal isOpen={isErrorLogOpen} onClose={() => setIsErrorLogOpen(false)} />
         </>
     );

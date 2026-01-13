@@ -1,4 +1,4 @@
-import { Button, ViewMode, ViewModeToggle } from '@/components/common';
+import { Button, DropdownItem, ExcelDropdownButton, ViewMode, ViewModeToggle } from '@/components/common';
 import { SortDropdown, SortOrder } from '@/components/common/SortDropdown';
 import { CheckSquare, DownloadSimple, Trash, UploadSimple } from '@phosphor-icons/react';
 import { memo, RefObject } from 'react';
@@ -29,6 +29,7 @@ interface ToolbarSecondaryRowProps {
     onExport: () => void;
     canExport: boolean;
     importError: string | null;
+    compact?: boolean;
 }
 
 /**
@@ -38,14 +39,14 @@ interface ToolbarSecondaryRowProps {
 const SelectionModeToggle = memo(
     ({ isSelectionMode, onToggle }: { isSelectionMode: boolean; onToggle: () => void }) => (
         <Button
-            variant={isSelectionMode ? 'soft' : 'ghost'}
-            size="sm"
+            variant={isSelectionMode ? 'soft' : 'outline'}
+            size="default"
             onClick={onToggle}
-            className="gap-1.5"
+            className="gap-1.5 h-12 font-medium"
             title={isSelectionMode ? '선택 모드 종료' : '선택 모드'}
         >
             <CheckSquare className="w-4 h-4" weight={isSelectionMode ? 'fill' : 'regular'} />
-            <span className="hidden sm:inline">{isSelectionMode ? '선택 해제' : '선택'}</span>
+            <span className="hidden sm:inline">{isSelectionMode ? '선택 모드 종료' : '선택 모드'}</span>
         </Button>
     )
 );
@@ -73,19 +74,17 @@ const SelectionControls = memo(
         onBatchExport: () => void;
         isBusy: boolean;
     }) => (
-        <>
-            <div className="h-6 w-px bg-border" />
-            <span className="text-sm font-medium text-muted-foreground">
-                <span className="text-primary">{selectedCount}</span>/{selectableCount}개 선택
-            </span>
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-white px-3 py-2">
+            <span className="text-sm font-semibold text-slate-700">{selectedCount}개 선택됨</span>
             <Button
                 variant="link"
                 size="sm"
                 onClick={selectedCount === selectableCount ? onDeselectAll : onSelectAll}
-                className="px-2"
+                className="px-2 text-primary"
             >
                 {selectedCount === selectableCount ? '전체 해제' : '전체 선택'}
             </Button>
+            <div className="h-4 w-px bg-border/60" />
             <Button
                 variant="ghost"
                 size="sm"
@@ -100,7 +99,7 @@ const SelectionControls = memo(
                 <DownloadSimple className="w-4 h-4" weight="regular" />
                 <span className="hidden sm:inline">내보내기</span>
             </Button>
-        </>
+        </div>
     )
 );
 SelectionControls.displayName = 'SelectionControls';
@@ -111,36 +110,6 @@ const SORT_OPTIONS = [
     { value: 'questions' as const, label: '항목수순' },
     { value: 'author' as const, label: '작성자순' },
 ];
-
-/**
- * 가져오기/내보내기 버튼
- * 통일된 Button 컴포넌트 사용
- */
-const ImportExportButtons = memo(
-    ({
-        onImportClick,
-        onExport,
-        isBusy,
-        canExport,
-    }: {
-        onImportClick: () => void;
-        onExport: () => void;
-        isBusy: boolean;
-        canExport: boolean;
-    }) => (
-        <>
-            <Button variant="ghost" size="sm" onClick={onImportClick} disabled={isBusy} className="gap-1.5">
-                <UploadSimple className="w-4 h-4" weight="regular" />
-                <span className="hidden sm:inline">가져오기</span>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onExport} disabled={isBusy || !canExport} className="gap-1.5">
-                <DownloadSimple className="w-4 h-4" weight="regular" />
-                <span className="hidden sm:inline">내보내기</span>
-            </Button>
-        </>
-    )
-);
-ImportExportButtons.displayName = 'ImportExportButtons';
 
 export const ToolbarSecondaryRow = memo((props: ToolbarSecondaryRowProps) => {
     const {
@@ -165,10 +134,14 @@ export const ToolbarSecondaryRow = memo((props: ToolbarSecondaryRowProps) => {
         onExport,
         canExport,
         importError,
+        compact = false,
     } = props;
 
+    const hasSelection = isSelectionMode && selectedCount > 0;
+    const showSelectionHint = isSelectionMode && selectedCount === 0;
+
     return (
-        <div className="mt-4 flex flex-wrap items-center gap-3 pt-4 border-t border-border">
+        <div className={`flex flex-wrap items-center gap-3 ${compact ? '' : 'mt-4 pt-4 border-t border-border'} ${compact ? 'justify-end' : ''}`}>
             <input
                 ref={fileInputRef}
                 type="file"
@@ -178,11 +151,8 @@ export const ToolbarSecondaryRow = memo((props: ToolbarSecondaryRowProps) => {
                 aria-label="파일 선택"
             />
 
-            {/* Left: Selection Mode Toggle */}
-            <SelectionModeToggle isSelectionMode={isSelectionMode} onToggle={onToggleSelectionMode} />
-
-            {/* Selection Controls - visible when selection mode is active */}
-            {isSelectionMode && (
+            {/* Selection Controls - visible when selection mode has selections */}
+            {hasSelection && (
                 <SelectionControls
                     selectedCount={selectedCount}
                     selectableCount={selectableCount}
@@ -194,10 +164,14 @@ export const ToolbarSecondaryRow = memo((props: ToolbarSecondaryRowProps) => {
                 />
             )}
 
-            {/* Spacer - pushes right items to the right */}
-            <div className="flex-1" />
+            {showSelectionHint && (
+                <span className="text-xs text-slate-500">선택 모드에서 항목을 선택하세요.</span>
+            )}
 
-            {/* Right side: Sort + View Toggle + Import/Export */}
+            {/* Spacer - pushes right items to the right */}
+            {!compact && <div className="flex-1" />}
+
+            {/* Right side: Sort + View Toggle + Import/Export + Selection toggle */}
             <div className="flex items-center gap-2">
                 {/* Sort Controls */}
                 <SortDropdown
@@ -213,19 +187,25 @@ export const ToolbarSecondaryRow = memo((props: ToolbarSecondaryRowProps) => {
                 {/* View Toggle */}
                 <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} useTableMode={true} />
 
-                {/* Import/Export Buttons - hidden when selection mode is active to avoid duplicate export */}
+                <SelectionModeToggle isSelectionMode={isSelectionMode} onToggle={onToggleSelectionMode} />
+
+                {/* Excel Dropdown - hidden when selection mode is active to avoid duplicate export */}
                 {!isSelectionMode && (
-                    <ImportExportButtons
-                        onImportClick={onImportClick}
-                        onExport={onExport}
-                        isBusy={isBusy}
-                        canExport={canExport}
-                    />
+                    <ExcelDropdownButton>
+                        <DropdownItem onClick={onImportClick} disabled={isBusy}>
+                            <UploadSimple className="w-4 h-4 mr-2" />
+                            가져오기 (Import)
+                        </DropdownItem>
+                        <DropdownItem onClick={onExport} disabled={isBusy || !canExport}>
+                            <DownloadSimple className="w-4 h-4 mr-2" />
+                            내보내기 (Export)
+                        </DropdownItem>
+                    </ExcelDropdownButton>
                 )}
             </div>
 
             {/* Error message */}
-            {importError && (
+            {importError && !compact && (
                 <div className="w-full text-sm text-destructive bg-destructive/10 px-3 py-1.5 rounded-lg">
                     {importError}
                 </div>

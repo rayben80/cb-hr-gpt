@@ -42,8 +42,8 @@ export const EvaluationPageHeader = memo(
                 </p>
             </div>
             {isAdminMode && (
-                <Button variant="primary" size="lg" onClick={onCreateNew} className="gap-2 whitespace-nowrap">
-                    <Plus className="w-5 h-5" weight="bold" />새 평가 캠페인 생성
+                <Button variant="primary" size="default" onClick={onCreateNew} className="gap-2 whitespace-nowrap">
+                    <Plus className="w-5 h-5" weight="bold" />새 평가 생성
                 </Button>
             )}
         </div>

@@ -262,6 +262,27 @@ export async function sendDeadlineWarning(
 }
 
 /**
+ * Send evaluation completion notification
+ */
+export async function sendEvaluationCompletion(
+    evaluationTitle: string,
+    subjectName: string,
+    evaluatorName: string,
+    dueDate?: string
+): Promise<boolean> {
+    const resolvedSubject = subjectName.trim() || '평가 대상자';
+    const resolvedEvaluator = evaluatorName.trim() || '평가자';
+    const message = `${resolvedSubject} 평가가 완료되었습니다.\n평가자: ${resolvedEvaluator}`;
+
+    return sendGoogleChatNotification({
+        type: 'evaluation_complete',
+        title: `평가 완료: ${evaluationTitle}`,
+        message,
+        ...(dueDate ? { dueDate } : {}),
+    });
+}
+
+/**
  * Mock: Simulate reminder for demo purposes
  * In production, this would be triggered by a backend scheduler
  * Caller must invoke the returned cleanup function to avoid leaking intervals.

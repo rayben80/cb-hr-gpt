@@ -1,22 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-    Evaluation,
-    EvaluationTemplate,
-    Team,
-    currentUser,
-    initialEvaluationsData,
-    initialLibraryData,
-    initialTeamsData,
-    TEAM_LEADER_TEAM_ID,
-} from '../../constants';
+import { useCallback, useMemo, useState } from 'react';
+import { currentUser, Evaluation, EvaluationTemplate, Team, TEAM_LEADER_TEAM_ID } from '../../constants';
 import { useRole } from '../../contexts/RoleContext';
 import { resolveTeamScope, TeamScope } from '../../utils/teamScope';
-import { normalizeTeamsMemberRoles } from '../../utils/memberRoleUtils';
+import { filterEvaluations, isEvaluationVisibleToTeam, normalizeEvaluationSubjectIds } from './evaluationDataUtils';
+import { useEvaluationDataSource } from './useEvaluationDataSource';
 
 interface EvaluationWeights {
     firstHalf: number;
     secondHalf: number;
     peerReview: number;
+    summaryYear: number;
+    showMonthlyPartialAverage: boolean;
 }
 
 interface UseEvaluationDataReturn {
@@ -33,6 +27,10 @@ interface UseEvaluationDataReturn {
     activeTab: string;
     searchTerm: string;
     evaluationWeights: EvaluationWeights;
+    teamFilter: string;
+    categoryFilter: string;
+    periodStartFilter: string;
+    periodEndFilter: string;
 
     // User View Data
     userMyEvaluations: Evaluation[];
@@ -42,8 +40,14 @@ interface UseEvaluationDataReturn {
     setActiveTab: (tab: string) => void;
     setSearchTerm: (term: string) => void;
     setEvaluationWeights: (weights: EvaluationWeights) => void;
+    setTeamFilter: (value: string) => void;
+    setCategoryFilter: (value: string) => void;
+    setPeriodStartFilter: (value: string) => void;
+    setPeriodEndFilter: (value: string) => void;
+    resetFilters: () => void;
     addEvaluation: (evaluation: Omit<Evaluation, 'id' | 'status' | 'progress' | 'score' | 'answers'>) => void;
     updateEvaluation: (id: number | string, updates: Partial<Evaluation>) => void;
+    refreshEvaluations: () => Promise<void>;
 
     // Constants
     tabs: string[];
@@ -52,37 +56,25 @@ interface UseEvaluationDataReturn {
 
 export function useEvaluationData(): UseEvaluationDataReturn {
     const { role } = useRole();
-
-    // Core State
-    const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
-    const [templates, setTemplates] = useState<EvaluationTemplate[]>([]);
-    const [teams, setTeams] = useState<Team[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error] = useState<string | null>(null);
-
-    // Filter State
+    const { evaluations, setEvaluations, templates, teams, isLoading, refreshEvaluations, useMockData } =
+        useEvaluationDataSource(role);
+    const error: string | null = null;
     const [activeTab, setActiveTab] = useState('전체');
     const [searchTerm, setSearchTerm] = useState('');
-
-    // Settings
+    const [teamFilter, setTeamFilter] = useState('전체');
+    const [categoryFilter, setCategoryFilter] = useState('전체');
+    const [periodStartFilter, setPeriodStartFilter] = useState('');
+    const [periodEndFilter, setPeriodEndFilter] = useState('');
     const [evaluationWeights, setEvaluationWeights] = useState<EvaluationWeights>({
         firstHalf: 40,
         secondHalf: 40,
         peerReview: 20,
+        summaryYear: new Date().getFullYear(),
+        showMonthlyPartialAverage: false,
     });
 
-    // Constants
     const tabs = useMemo(() => ['전체', '진행중', '완료', '예정'], []);
     const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-
-    // Data Fetching (mock data until backend integration)
-    useEffect(() => {
-        setEvaluations(initialEvaluationsData);
-        setTemplates(initialLibraryData);
-        setTeams(normalizeTeamsMemberRoles(initialTeamsData).teams);
-        setIsLoading(false);
-    }, []);
-
     const evaluationsWithSubjectIds = useMemo(
         () => normalizeEvaluationSubjectIds(evaluations, teams),
         [evaluations, teams]
@@ -94,13 +86,13 @@ export function useEvaluationData(): UseEvaluationDataReturn {
     }, [role, teams]);
 
     const scopedEvaluations = useMemo(() => {
+        if (useMockData) return evaluationsWithSubjectIds;
         if (role !== 'TEAM_LEADER') return evaluationsWithSubjectIds;
         const teamId = teamScope.teamId;
         if (!teamId) return [];
         return evaluationsWithSubjectIds.filter((e) => isEvaluationVisibleToTeam(e, teamId));
-    }, [evaluationsWithSubjectIds, role, teamScope.teamId]);
+    }, [evaluationsWithSubjectIds, role, teamScope.teamId, useMockData]);
 
-    // Normalize evaluations (compute status based on dates)
     const normalizedEvaluations = useMemo(
         () =>
             scopedEvaluations.map((e) => {
@@ -112,29 +104,43 @@ export function useEvaluationData(): UseEvaluationDataReturn {
         [scopedEvaluations, today]
     );
 
-    // Filter evaluations by role, tab, and search
     const filteredEvaluations = useMemo(
         () =>
-            filterEvaluations(
+            filterEvaluations({
                 normalizedEvaluations,
                 role,
                 activeTab,
                 searchTerm,
-                role === 'TEAM_LEADER' ? teamScope.teamId : undefined
-            ),
-        [normalizedEvaluations, role, activeTab, searchTerm, teamScope.teamId]
+                teamId: role === 'TEAM_LEADER' && teamScope.teamId ? teamScope.teamId : undefined,
+                filters: {
+                    teamFilter,
+                    categoryFilter,
+                    periodStartFilter,
+                    periodEndFilter,
+                },
+            }),
+        [
+            normalizedEvaluations,
+            role,
+            activeTab,
+            searchTerm,
+            teamScope.teamId,
+            teamFilter,
+            categoryFilter,
+            periodStartFilter,
+            periodEndFilter,
+        ]
     );
 
-    // User View Filters
     const userMyEvaluations = useMemo(() => {
-        return normalizedEvaluations.filter((e) => e.status === '진행중' || e.status === '예정');
+        return normalizedEvaluations.filter(
+            (e) => (e.status === '진행중' || e.status === '예정') && e.subjectId !== 'campaign'
+        );
     }, [normalizedEvaluations]);
-
     const userCompletedEvaluations = useMemo(() => {
         return normalizedEvaluations.filter((e) => e.status === '완료');
     }, [normalizedEvaluations]);
 
-    // Actions
     const addEvaluation = useCallback(
         (newEvaluationData: Omit<Evaluation, 'id' | 'status' | 'progress' | 'score' | 'answers'>) => {
             const id = Date.now();
@@ -158,11 +164,22 @@ export function useEvaluationData(): UseEvaluationDataReturn {
             };
             setEvaluations((prev) => [...prev, evaluationToAdd]);
         },
-        [today]
+        [setEvaluations, today]
     );
 
-    const updateEvaluation = useCallback((id: number | string, updates: Partial<Evaluation>) => {
-        setEvaluations((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)));
+    const updateEvaluation = useCallback(
+        (id: number | string, updates: Partial<Evaluation>) => {
+            setEvaluations((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)));
+        },
+        [setEvaluations]
+    );
+
+    const resetFilters = useCallback(() => {
+        setSearchTerm('');
+        setTeamFilter('전체');
+        setCategoryFilter('전체');
+        setPeriodStartFilter('');
+        setPeriodEndFilter('');
     }, []);
 
     return {
@@ -176,98 +193,24 @@ export function useEvaluationData(): UseEvaluationDataReturn {
         activeTab,
         searchTerm,
         evaluationWeights,
+        teamFilter,
+        categoryFilter,
+        periodStartFilter,
+        periodEndFilter,
         userMyEvaluations,
         userCompletedEvaluations,
         setActiveTab,
         setSearchTerm,
         setEvaluationWeights,
+        setTeamFilter,
+        setCategoryFilter,
+        setPeriodStartFilter,
+        setPeriodEndFilter,
+        resetFilters,
         addEvaluation,
         updateEvaluation,
+        refreshEvaluations,
         tabs,
         today,
     };
-}
-
-function filterEvaluations(
-    normalizedEvaluations: Evaluation[],
-    role: string | undefined, // RoleContext uses string | undefined
-    activeTab: string,
-    searchTerm: string,
-    teamId?: string
-): Evaluation[] {
-    let roleFiltered = normalizedEvaluations;
-
-    if (role === 'TEAM_LEADER') {
-        if (!teamId) return [];
-        roleFiltered = normalizedEvaluations.filter((e) => {
-            return isEvaluationVisibleToTeam(e, teamId);
-        });
-    }
-
-    const statusFiltered = activeTab === '전체' ? roleFiltered : roleFiltered.filter((e) => e.status === activeTab);
-
-    const query = searchTerm.trim().toLowerCase();
-    if (!query) return statusFiltered;
-
-    return statusFiltered.filter(
-        (e) =>
-            e.name.toLowerCase().includes(query) ||
-            e.type.toLowerCase().includes(query) ||
-            e.subject.toLowerCase().includes(query)
-    );
-}
-
-function isEvaluationVisibleToTeam(evaluation: Evaluation, teamId: string): boolean {
-    if (evaluation.subjectId === teamId) return true;
-    return evaluation.subjectSnapshot?.teamId === teamId;
-}
-
-function normalizeEvaluationSubjectIds(evaluations: Evaluation[], teams: Team[]): Evaluation[] {
-    let changed = false;
-    const normalized = evaluations.map((evaluation) => {
-        if (!isMissingSubjectId(evaluation.subjectId)) return evaluation;
-        const resolved = resolveSubjectId(evaluation, teams);
-        if (!resolved) return evaluation;
-        changed = true;
-        return { ...evaluation, subjectId: resolved };
-    });
-
-    return changed ? normalized : evaluations;
-}
-
-function isMissingSubjectId(subjectId: string | undefined): boolean {
-    return !subjectId || subjectId === 'unknown';
-}
-
-function resolveSubjectId(evaluation: Evaluation, teams: Team[]): string | null {
-    const snapshot = evaluation.subjectSnapshot;
-    const subjectName = snapshot?.name || evaluation.subject;
-
-    if (snapshot?.teamId && snapshot?.teamName) {
-        const isTeamLevel = snapshot.name === snapshot.teamName || evaluation.subject === snapshot.teamName;
-        if (isTeamLevel) return snapshot.teamId;
-    }
-
-    const candidateTeams = snapshot?.teamId ? teams.filter((team) => team.id === snapshot.teamId) : teams;
-    const matches = new Set<string>();
-
-    candidateTeams.forEach((team) => {
-        if (snapshot?.partId) {
-            const targetPart = team.parts.find((part) => part.id === snapshot.partId);
-            targetPart?.members.forEach((member) => {
-                if (member.name === subjectName) matches.add(member.id);
-            });
-        } else {
-            (team.members || []).forEach((member) => {
-                if (member.name === subjectName) matches.add(member.id);
-            });
-            team.parts.forEach((part) => {
-                part.members.forEach((member) => {
-                    if (member.name === subjectName) matches.add(member.id);
-                });
-            });
-        }
-    });
-
-    return matches.size === 1 ? Array.from(matches)[0] : null;
 }

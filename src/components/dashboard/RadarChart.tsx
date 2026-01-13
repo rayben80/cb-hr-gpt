@@ -90,7 +90,7 @@ export const RadarChart: React.FC<RadarChartProps> = memo(({ data, color = '#1D8
     return (
         <div className="flex flex-col items-center">
             {}
-            <div className="relative" style={{ width: size, height: size }}>
+            <div className="relative w-[200px] h-[200px]">
                 <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
                     {bgPolygons.map((pts, i) => (
                         <polygon

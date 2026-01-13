@@ -3,7 +3,6 @@ import { Member, MemberStatus, Team } from '../constants';
 import { getAvatarUrl } from './avatarUtils';
 import { DEFAULT_MEMBER_ROLE, isAllowedMemberRole, normalizeMemberRole } from './memberRoleUtils';
 
-// 엑셀 컬럼 매핑 (User friendly headers)
 export const HEADERS = {
     NAME: '이름',
     TEAM: '팀',
@@ -14,11 +13,9 @@ export const HEADERS = {
     EMPLOYMENT_TYPE: '고용형태', // 정규직, 인턴
     STATUS: '상태', // 재직, 휴직, 퇴사 등
 };
-
 export interface ExcelMemberRow {
     [key: string]: string | undefined;
 }
-
 const getCellValue = (value: unknown) => {
     if (value === null || value === undefined) return '';
     return String(value).trim();
@@ -33,6 +30,8 @@ const getMissingRows = (rows: ExcelMemberRow[], header: string) =>
         .filter(({ row }) => !getCellValue(row[header]))
         .map(({ index }) => index + 2);
 
+const normalizeEmailValue = (value: string) => value.trim().toLowerCase();
+
 const getInvalidRoleRows = (rows: ExcelMemberRow[]) =>
     rows
         .map((row, index) => ({ row, index }))
@@ -41,11 +40,62 @@ const getInvalidRoleRows = (rows: ExcelMemberRow[]) =>
         .filter(({ role }) => role !== '' && !isAllowedMemberRole(role))
         .map(({ index }) => index + 2);
 
+const getDuplicateEmailRows = (rows: ExcelMemberRow[]) => {
+    const entries = new Map<string, number[]>();
+
+    rows.forEach((row, index) => {
+        if (isRowEmpty(row)) return;
+        const email = normalizeEmailValue(getCellValue(row[HEADERS.EMAIL]));
+        if (!email) return;
+        const rowNumbers = entries.get(email) ?? [];
+        rowNumbers.push(index + 2);
+        entries.set(email, rowNumbers);
+    });
+
+    return Array.from(entries.entries())
+        .filter(([, rowNumbers]) => rowNumbers.length > 1)
+        .map(([email, rowNumbers]) => ({ email, rowNumbers }));
+};
+
 const sanitizeExcelCell = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return value;
     if ('=+-@'.includes(trimmed[0])) return `'${value}`;
     return value;
+};
+
+export const validateMemberRows = (rows: ExcelMemberRow[]) => {
+    const hasDataRows = rows.some((row) => !isRowEmpty(row));
+    if (!hasDataRows) {
+        throw new Error('엑셀에 처리할 데이터가 없습니다. 템플릿 헤더(팀/이름/이메일)를 확인해주세요.');
+    }
+
+    const missingTeamRows = getMissingRows(rows, HEADERS.TEAM);
+    const missingNameRows = getMissingRows(rows, HEADERS.NAME);
+    const missingEmailRows = getMissingRows(rows, HEADERS.EMAIL);
+    const invalidRoleRows = getInvalidRoleRows(rows);
+    const duplicateEmailRows = getDuplicateEmailRows(rows);
+
+    if (
+        missingTeamRows.length > 0 ||
+        missingNameRows.length > 0 ||
+        missingEmailRows.length > 0 ||
+        invalidRoleRows.length > 0 ||
+        duplicateEmailRows.length > 0
+    ) {
+        const errors: string[] = [];
+        if (missingTeamRows.length > 0) errors.push(`팀: ${missingTeamRows.join(', ')}`);
+        if (missingNameRows.length > 0) errors.push(`이름: ${missingNameRows.join(', ')}`);
+        if (missingEmailRows.length > 0) errors.push(`이메일: ${missingEmailRows.join(', ')}`);
+        if (invalidRoleRows.length > 0) errors.push(`직책: ${invalidRoleRows.join(', ')}`);
+        if (duplicateEmailRows.length > 0) {
+            const duplicates = duplicateEmailRows
+                .map(({ email, rowNumbers }) => `${email} (${rowNumbers.join(', ')})`)
+                .join(' / ');
+            errors.push(`이메일 중복: ${duplicates}`);
+        }
+        throw new Error(`입력 오류가 있습니다. (엑셀 행 번호 - ${errors.join(' / ')})`);
+    }
 };
 
 /**
@@ -178,10 +228,10 @@ export const downloadExcelTemplate = () => {
     // 2. Guide Sheet
     const guideData = [
         { 항목: '팀', 설명: '소속 팀의 이름을 입력합니다. (필수) 예: Sales팀' },
-        { 항목: '파트', 설명: '소속 파트가 있는 경우 입력합니다. (선택) 예: 영업파트' },
+        { 항목: '파트', 설명: '소속 파트가 있는 경우 입력합니다. (선택) 팀장은 비워두면 팀 직속으로 처리됩니다.' },
         { 항목: '이름', 설명: '조직원의 이름입니다. (필수)' },
-        { 항목: '직책', 설명: '팀장, 파트장, 팀원 중 하나를 입력합니다.' },
-        { 항목: '이메일', 설명: '고유 식별자로 사용됩니다. 기존 인원 수정 시 필수입니다.' },
+        { 항목: '직책', 설명: '팀장, 파트장, 팀원 중 하나를 입력합니다. 팀장인 경우 파트는 비워주세요.' },
+        { 항목: '이메일', 설명: '고유 식별자로 사용됩니다. 같은 이메일은 한 번만 입력하세요.' },
         { 항목: '입사일', 설명: 'YYYY-MM-DD 형식으로 입력합니다.' },
         { 항목: '고용형태', 설명: '정규직, 인턴 중 하나를 입력합니다. (기본값: 정규직)' },
         { 항목: '상태', 설명: '재직, 휴직, 퇴사 중 하나를 입력합니다.' },

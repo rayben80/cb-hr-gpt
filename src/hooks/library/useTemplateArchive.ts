@@ -3,6 +3,7 @@ import { EvaluationTemplate, currentUser } from '../../constants';
 
 interface FirestoreActions {
     updateTemplate: (id: string, data: Partial<EvaluationTemplate>) => Promise<void>;
+    deleteTemplate?: (id: string) => Promise<void>;
 }
 
 interface UseTemplateArchiveProps {
@@ -21,14 +22,21 @@ export const useTemplateArchive = ({
     firestoreActions,
 }: UseTemplateArchiveProps) => {
     const handleArchiveTemplate = useCallback(
-        (templateId: string | number, templateName: string, confirmationActions: any, deleteOperationExecute: any) => {
-            executeArchiveTemplate(
+        (
+            templateId: string | number,
+            templateName: string,
+            confirmationActions: any,
+            deleteOperationExecute: any,
+            options?: { title?: string; message?: string; confirmButtonText?: string; confirmButtonColor?: string }
+        ) => {
+            executeArchiveTemplate({
                 templateId,
                 templateName,
                 confirmationActions,
                 deleteOperationExecute,
-                firestoreActions
-            );
+                firestoreActions,
+                options,
+            });
         },
         [firestoreActions]
     );
@@ -40,14 +48,17 @@ export const useTemplateArchive = ({
         [firestoreActions]
     );
 
-    const handleToggleFavorite = useCallback(
-        async (templateId: string | number) => {
-            const template = templates.find((t) => t.id === templateId);
-            if (template) {
-                await firestoreActions.updateTemplate(templateId as string, { favorite: !template.favorite });
-            }
+    const handleDeleteTemplate = useCallback(
+        (templateId: string | number, templateName: string, confirmationActions: any, deleteOperationExecute: any) => {
+            executeDeleteTemplate(
+                templateId,
+                templateName,
+                confirmationActions,
+                deleteOperationExecute,
+                firestoreActions
+            );
         },
-        [templates, firestoreActions]
+        [firestoreActions]
     );
 
     const handleBatchArchive = useCallback(
@@ -86,33 +97,80 @@ export const useTemplateArchive = ({
     return {
         handleArchiveTemplate,
         handleRestoreTemplate,
-        handleToggleFavorite,
+        handleDeleteTemplate,
         handleBatchArchive,
         handleRestoreVersion,
     };
 };
 
-function executeArchiveTemplate(
+interface ArchiveTemplateParams {
+    templateId: string | number;
+    templateName: string;
+    confirmationActions: any;
+    deleteOperationExecute: any;
+    firestoreActions: FirestoreActions;
+    options?: { title?: string; message?: string; confirmButtonText?: string; confirmButtonColor?: string } | undefined;
+}
+
+function executeArchiveTemplate({
+    templateId,
+    templateName,
+    confirmationActions,
+    deleteOperationExecute,
+    firestoreActions,
+    options,
+}: ArchiveTemplateParams) {
+    confirmationActions.showConfirmation({
+        title: options?.title || '템플릿 보관',
+        message:
+            options?.message || `'${templateName}' 템플릿을 보관하시겠습니까? 보관된 템플릿은 목록에서 숨겨집니다.`,
+        confirmButtonText: options?.confirmButtonText || '보관',
+        confirmButtonColor: options?.confirmButtonColor || 'destructive',
+        onConfirm: async () => {
+            await deleteOperationExecute(
+                async () => {
+                    await firestoreActions.updateTemplate(templateId as string, { archived: true });
+                    return 'success';
+                },
+                {
+                    successMessage: options?.title?.includes('삭제')
+                        ? '템플릿이 삭제(보관)되었습니다.'
+                        : '템플릿이 보관되었습니다.',
+                    errorMessage: '작업 중 오류가 발생했습니다.',
+                }
+            );
+        },
+    });
+}
+
+function executeDeleteTemplate(
     templateId: string | number,
     templateName: string,
     confirmationActions: any,
     deleteOperationExecute: any,
     firestoreActions: FirestoreActions
 ) {
+    if (!firestoreActions.deleteTemplate) {
+        console.error('Delete action not available');
+        return;
+    }
+
     confirmationActions.showConfirmation({
-        title: '템플릿 보관',
-        message: `'${templateName}' 템플릿을 보관하시겠습니까? 보관된 템플릿은 목록에서 숨겨집니다.`,
-        confirmButtonText: '보관',
+        title: '템플릿 영구 삭제',
+        message: `'${templateName}' 템플릿을 영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`,
+        confirmButtonText: '삭제',
         confirmButtonColor: 'destructive',
         onConfirm: async () => {
             await deleteOperationExecute(
                 async () => {
-                    await firestoreActions.updateTemplate(templateId as string, { archived: true, favorite: false });
+                    if (firestoreActions.deleteTemplate) {
+                        await firestoreActions.deleteTemplate(templateId as string);
+                    }
                     return 'success';
                 },
                 {
-                    successMessage: '템플릿이 보관되었습니다.',
-                    errorMessage: '템플릿 보관 중 오류가 발생했습니다.',
+                    successMessage: '템플릿이 삭제되었습니다.',
+                    errorMessage: '템플릿 삭제 중 오류가 발생했습니다.',
                 }
             );
         },
@@ -146,7 +204,7 @@ function executeBatchArchive({
             await deleteOperationExecute(
                 async () => {
                     const promises = Array.from(selectedIds).map((id) =>
-                        firestoreActions.updateTemplate(id as string, { archived: true, favorite: false })
+                        firestoreActions.updateTemplate(id as string, { archived: true })
                     );
                     await Promise.all(promises);
                     deselectAll();
@@ -210,11 +268,10 @@ function executeRestoreVersion({
                 version: currentVersion + 1,
                 lastUpdated: new Date().toISOString().split('T')[0],
                 author: currentUser.name,
-                // Preserve or overwrite fav/archived based on logic.
+                // Preserve or overwrite archived based on logic.
                 // Usually restore doesn't auto-archive, assume keeping existing or resetting.
-                // Let's keep existing favorite status but reset archived if it was archived?
+                // Let's reset archived if it was archived?
                 // For now, simple restore.
-                favorite: template.favorite,
                 archived: template.archived,
                 versionHistory: [...existingHistory, newHistoryEntry].slice(-10),
             };

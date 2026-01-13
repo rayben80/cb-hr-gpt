@@ -9,6 +9,9 @@ import { OrgStatsSection } from '../../components/organization/OrgStatsSection';
 import { OrgToolbar } from '../../components/organization/OrgToolbar';
 import { Headquarter, Member, Team } from '../../constants';
 
+import { HeadquarterHeader } from '../../components/organization/HeadquarterHeader';
+import { useRole } from '../../contexts/RoleContext';
+
 interface OrganizationViewsProps {
     networkState: { isOnline: boolean };
     saveOperation: any;
@@ -62,9 +65,15 @@ interface OrganizationViewsProps {
 
     // Modal Props
     modalProps: any;
+
+    // DnD Props
+    dndContextProps: any;
+    dragActiveId: string | null;
 }
 
 export const OrganizationViews = memo((props: OrganizationViewsProps) => {
+    const { canManageHeadquarterLead } = useRole();
+
     const {
         networkState,
         saveOperation,
@@ -130,6 +139,18 @@ export const OrganizationViews = memo((props: OrganizationViewsProps) => {
 
             <OrgStatsSection stats={stats} statusFilter={statusFilter} onStatusFilter={handleStatusFilter} />
 
+            {/* Single Headquarter Header (Moved Up - Static, no collapse) */}
+            {groupedHeadquarters.sections.length === 1 && activeTab === 'orgChart' && (
+                <div className="mb-6">
+                    <HeadquarterHeader
+                        headquarter={groupedHeadquarters.sections[0].headquarter}
+                        onEditHeadquarter={() => openHeadquarterModal(groupedHeadquarters.sections[0].headquarter)}
+                        canManageHeadquarterLead={canManageHeadquarterLead}
+                        disableCollapse={true}
+                    />
+                </div>
+            )}
+
             <OrgToolbar
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
@@ -180,6 +201,9 @@ export const OrganizationViews = memo((props: OrganizationViewsProps) => {
                 handleSeedDatabase={handleSeedDatabase}
                 handleContainerDragOver={handleContainerDragOver}
                 handleContainerDrop={handleContainerDrop}
+                hideSingleHeadquarterHeader={groupedHeadquarters.sections.length === 1}
+                dndContextProps={props.dndContextProps}
+                dragActiveId={props.dragActiveId}
             />
 
             <OrganizationModals {...modalProps} />

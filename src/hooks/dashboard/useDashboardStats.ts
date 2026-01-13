@@ -14,6 +14,7 @@ import { generateInsights, identifyPerformers } from '../../services/insightsSer
 import { resolveTeamScope, TeamScope } from '../../utils/teamScope';
 import { useEvaluationData } from '../evaluation/useEvaluationData';
 import { useOrganizationData } from '../organization/useOrganizationData';
+import { resolveReportingCategory } from '../../utils/reportingCategoryUtils';
 
 /**
  * Dashboard Stats Hook
@@ -33,11 +34,30 @@ import { useOrganizationData } from '../organization/useOrganizationData';
  * @example
  * const { stats, insights } = useDashboardStats();
  */
-export const useDashboardStats = () => {
+interface UseDashboardStatsOptions {
+    reportingCategory?: string;
+}
+
+export const useDashboardStats = (options: UseDashboardStatsOptions = {}) => {
     const { role } = useRole();
     const isTeamLeader = role === 'TEAM_LEADER';
     const { teams } = useOrganizationData();
     const { evaluations } = useEvaluationData();
+    const reportingCategory = options.reportingCategory || '전체';
+
+    const reportingFilteredEvaluations = useMemo(() => {
+        if (reportingCategory === '전체') return evaluations;
+        return evaluations.filter(
+            (evaluation) =>
+                resolveReportingCategory({
+                    reportingCategory: evaluation.reportingCategory,
+                    type: evaluation.type,
+                    name: evaluation.name,
+                    templateCategory: evaluation.templateSnapshot?.category,
+                    templateType: evaluation.templateSnapshot?.type,
+                }) === reportingCategory
+        );
+    }, [evaluations, reportingCategory]);
 
     const teamScope = useMemo<TeamScope>(() => {
         if (!isTeamLeader) return {};
@@ -51,8 +71,8 @@ export const useDashboardStats = () => {
     const activeMembersByTeam = useMemo(() => buildActiveMembersByTeam(teams), [teams]);
 
     const dashboardStats = useMemo(
-        () => calculateDashboardStats(teams, evaluations, isTeamLeader, teamName, activeMembersByTeam),
-        [teams, evaluations, isTeamLeader, teamName, activeMembersByTeam]
+        () => calculateDashboardStats(teams, reportingFilteredEvaluations, isTeamLeader, teamName, activeMembersByTeam),
+        [teams, reportingFilteredEvaluations, isTeamLeader, teamName, activeMembersByTeam]
     );
 
     const stats: StatCardProps[] = useMemo(() => {
@@ -94,18 +114,18 @@ export const useDashboardStats = () => {
     }, [dashboardStats, isTeamLeader]);
 
     const distributionData = useMemo(
-        () => calculateGradeDistribution(teams, evaluations, isTeamLeader, teamName, activeMembersByTeam),
-        [teams, evaluations, isTeamLeader, teamName, activeMembersByTeam]
+        () => calculateGradeDistribution(teams, reportingFilteredEvaluations, isTeamLeader, teamName, activeMembersByTeam),
+        [teams, reportingFilteredEvaluations, isTeamLeader, teamName, activeMembersByTeam]
     );
 
     const deptPerformanceData = useMemo(
-        () => calculateTeamPerformance(teams, evaluations, isTeamLeader, teamName, activeMembersByTeam),
-        [teams, evaluations, isTeamLeader, teamName, activeMembersByTeam]
+        () => calculateTeamPerformance(teams, reportingFilteredEvaluations, isTeamLeader, teamName, activeMembersByTeam),
+        [teams, reportingFilteredEvaluations, isTeamLeader, teamName, activeMembersByTeam]
     );
 
     const radarData = useMemo(
-        () => calculateCapabilityRadar(teams, evaluations, isTeamLeader, teamName),
-        [teams, evaluations, isTeamLeader, teamName]
+        () => calculateCapabilityRadar(teams, reportingFilteredEvaluations, isTeamLeader, teamName),
+        [teams, reportingFilteredEvaluations, isTeamLeader, teamName]
     );
 
     const insights = useMemo(

@@ -1,12 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Evaluation, evaluationResultData } from '../../constants';
-import { useError } from '../../contexts/ErrorContext';
+import { Evaluation } from '../../constants';
 import { useRole } from '../../contexts/RoleContext';
 import { useEvaluationData } from './useEvaluationData';
+import { useEvaluationResultLoader } from './useEvaluationResultLoader';
+import { useEvaluationSubmitter } from './useEvaluationSubmitter';
+import { useFirestoreEvaluation } from './useFirestoreEvaluation';
 
 export const useEvaluationLogic = () => {
     const { isAdmin } = useRole();
-    const { showSuccess } = useError();
+
     const evaluationData = useEvaluationData();
 
     const [viewMode, setViewMode] = useState<'user' | 'admin'>('admin');
@@ -15,28 +17,10 @@ export const useEvaluationLogic = () => {
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [monitoringEvaluation, setMonitoringEvaluation] = useState<Evaluation | null>(null);
     const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
-    const [selectedEvaluationId, setSelectedEvaluationId] = useState<number | string | null>(null);
-    const [resultUnavailable, setResultUnavailable] = useState(false);
     const [executingEvaluationId, setExecutingEvaluationId] = useState<number | string | null>(null);
-
-    const handleLaunchEvaluation = useCallback(
-        (newEvaluationData: any) => {
-            evaluationData.addEvaluation(newEvaluationData);
-            setIsModalOpen(false);
-        },
-        [evaluationData]
-    );
-
-    const handleViewResult = useCallback((evaluationId: string | number) => {
-        const hasResult = String(evaluationId) === String(evaluationResultData.evaluationId);
-        setResultUnavailable(!hasResult);
-        setSelectedEvaluationId(evaluationId);
-    }, []);
-
-    const handleBackToList = useCallback(() => {
-        setSelectedEvaluationId(null);
-        setResultUnavailable(false);
-    }, []);
+    // Let's replace the whole section to use the hook correctly.
+    const { selectedEvaluationId, resultUnavailable, resultLoading, resultData, handleViewResult, handleBackToList } =
+        useEvaluationResultLoader(); // Imported at top level
 
     const handleSaveWeights = useCallback(
         (newWeights: any) => {
@@ -46,24 +30,29 @@ export const useEvaluationLogic = () => {
         [evaluationData]
     );
 
+    const { createCampaign } = useFirestoreEvaluation();
+
+    const handleLaunchEvaluation = useCallback(
+        async (data: { campaign: any; assignments: any[] }) => {
+            try {
+                await createCampaign(data.campaign, data.assignments);
+                setIsModalOpen(false);
+                await evaluationData.refreshEvaluations();
+            } catch (error) {
+                console.error('Campaign creation failed', error);
+                // Error handling is done inside useFirestoreEvaluation
+            }
+        },
+        [createCampaign, evaluationData]
+    );
+
     const handleRunEvaluation = useCallback(
         (evaluationId: string | number) => setExecutingEvaluationId(evaluationId),
         []
     );
 
-    const handleSaveExecution = useCallback(
-        (result: any) => {
-            evaluationData.updateEvaluation(result.evaluationId, {
-                status: '완료',
-                score: result.totalScore,
-                progress: 100,
-                answers: result.answers,
-            });
-            setExecutingEvaluationId(null);
-            showSuccess('평가가 완료되었습니다.', '결과가 성공적으로 저장되었습니다.');
-        },
-        [evaluationData, showSuccess]
-    );
+    // Use the submitter hook to handle saving
+    const { handleSaveExecution } = useEvaluationSubmitter(evaluationData, setExecutingEvaluationId);
 
     const handleCancelExecution = useCallback(() => setShowCancelConfirmation(true), []);
     const confirmCancelExecution = useCallback(() => {
@@ -96,6 +85,8 @@ export const useEvaluationLogic = () => {
         setShowCancelConfirmation,
         selectedEvaluationId,
         resultUnavailable,
+        resultLoading,
+        resultData,
         executingEvaluationId,
         handleLaunchEvaluation,
         handleViewResult,
@@ -109,3 +100,5 @@ export const useEvaluationLogic = () => {
         executionViewData,
     };
 };
+
+// Helper functions moved to src/features/evaluation/utils/evaluationHelpers.ts

@@ -67,7 +67,7 @@ export const SortDropdown = memo(
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium bg-background border border-border rounded-lg shadow-sm hover:border-primary/50 hover:text-primary transition-all group"
+                    className="flex items-center gap-2 h-12 px-4 text-sm font-medium bg-secondary/50 rounded-xl shadow-sm ring-1 ring-border/30 hover:ring-primary/30 hover:text-primary transition-all group whitespace-nowrap min-w-[110px]"
                 >
                     {/* Sort order icon - clickable to toggle */}
                     {onSortOrderChange && (

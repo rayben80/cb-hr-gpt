@@ -8,6 +8,7 @@ import { useTemplateCrud } from './useTemplateCrud';
 interface FirestoreActions {
     addTemplate: (template: Omit<EvaluationTemplate, 'id'>) => Promise<string>;
     updateTemplate: (id: string, data: Partial<EvaluationTemplate>) => Promise<void>;
+    deleteTemplate?: (id: string) => Promise<void>;
 }
 
 interface UseTemplateActionsProps {
@@ -47,7 +48,7 @@ export const useTemplateActions = ({
     const {
         handleArchiveTemplate: archiveTpl,
         handleRestoreTemplate,
-        handleToggleFavorite,
+        handleDeleteTemplate: deleteTpl,
         handleBatchArchive: batchArchive,
         handleRestoreVersion: restoreVer,
     } = useTemplateArchive({ templates, selectedIds, deselectAll, setIsSelectionMode, firestoreActions });
@@ -61,9 +62,16 @@ export const useTemplateActions = ({
         [dupTpl, duplicateOperationActions.execute]
     );
     const handleArchiveTemplate = useCallback(
-        (id: string | number, name: string) =>
-            archiveTpl(id, name, confirmationActions, deleteOperationActions.execute),
+        (
+            id: string | number,
+            name: string,
+            options?: { title?: string; message?: string; confirmButtonText?: string; confirmButtonColor?: string }
+        ) => archiveTpl(id, name, confirmationActions, deleteOperationActions.execute, options),
         [archiveTpl, confirmationActions, deleteOperationActions.execute]
+    );
+    const handleDeleteTemplate = useCallback(
+        (id: string | number, name: string) => deleteTpl(id, name, confirmationActions, deleteOperationActions.execute),
+        [deleteTpl, confirmationActions, deleteOperationActions.execute]
     );
     const handleBatchArchive = useCallback(
         () => batchArchive(confirmationActions, deleteOperationActions.execute),
@@ -83,7 +91,7 @@ export const useTemplateActions = ({
         handleEditTemplate,
         handleArchiveTemplate,
         handleRestoreTemplate: (id: string | number, name: string) => handleRestoreTemplate(id, name),
-        handleToggleFavorite,
+        handleDeleteTemplate,
         handleDuplicateTemplate,
         handleRestoreVersion,
         handleBatchArchive,

@@ -2,6 +2,7 @@ import { Books, Buildings, ClipboardText, Gear, SignOut, SquaresFour } from '@ph
 import React, { memo, useCallback, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRole } from '../../contexts/RoleContext';
+import { getDisplayAvatarUrl } from '../../utils/avatarUtils';
 
 export type SidebarPageKey = 'dashboard' | 'organization' | 'evaluation' | 'library' | 'settings';
 
@@ -19,7 +20,7 @@ const NAV_ITEMS: ReadonlyArray<{
         label: '평가 관리',
         roles: ['SUPER_ADMIN', 'HQ_LEADER', 'TEAM_LEADER', 'USER'],
     },
-    { key: 'library', icon: Books, label: '평가 라이브러리', roles: ['SUPER_ADMIN', 'HQ_LEADER', 'TEAM_LEADER'] },
+    { key: 'library', icon: Books, label: '평가 템플릿', roles: ['SUPER_ADMIN', 'HQ_LEADER', 'TEAM_LEADER'] },
     { key: 'settings', icon: Gear, label: '설정', roles: ['SUPER_ADMIN', 'HQ_LEADER', 'TEAM_LEADER', 'USER'] },
 ];
 
@@ -67,6 +68,9 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = memo(({ isOpen, activePage, onNavigate }) => {
     const { role } = useRole();
     const { currentUser: authCurrentUser, logout } = useAuth();
+    const profileName = authCurrentUser?.displayName || authCurrentUser?.email || 'User';
+    const profileSeed = authCurrentUser?.email || profileName;
+    const profileAvatar = getDisplayAvatarUrl(profileName, null, profileSeed);
 
     const navItems = useMemo(() => {
         return NAV_ITEMS.filter((item) => item.roles.includes(role as any));
@@ -113,19 +117,11 @@ export const Sidebar: React.FC<SidebarProps> = memo(({ isOpen, activePage, onNav
             <div className="px-4 py-5 border-t border-border">
                 <div className="flex items-center justify-between p-2 rounded-xl hover:bg-accent/30 transition-colors group">
                     <div className="flex items-center min-w-0">
-                        {authCurrentUser?.photoURL ? (
-                            <img
-                                className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20"
-                                src={authCurrentUser.photoURL}
-                                alt="User avatar"
-                            />
-                        ) : (
-                            <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center ring-2 ring-primary/20">
-                                <span className="text-indigo-600 font-bold text-lg">
-                                    {authCurrentUser?.email?.charAt(0).toUpperCase() || 'U'}
-                                </span>
-                            </div>
-                        )}
+                        <img
+                            className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20"
+                            src={profileAvatar}
+                            alt="User avatar"
+                        />
                         <div className="ml-3 whitespace-nowrap overflow-hidden">
                             <p className="text-sm font-semibold text-foreground truncate">
                                 {authCurrentUser?.displayName || 'User'}

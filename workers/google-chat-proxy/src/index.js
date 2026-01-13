@@ -10,6 +10,12 @@ const getAllowedOrigins = (env) =>
         .map((origin) => origin.trim())
         .filter(Boolean);
 
+const getAllowedHeadquarterIds = (env) =>
+    (env.ALLOWED_HQ_IDS || 'hq-cloud')
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean);
+
 const buildCorsHeaders = (origin, allowedOrigins) => {
     const headers = new Headers();
     if (origin) {
@@ -139,12 +145,20 @@ export default {
 
         const token = authHeader.slice('Bearer '.length);
         const issuer = `https://securetoken.google.com/${env.FIREBASE_PROJECT_ID}`;
+        const allowedHqIds = getAllowedHeadquarterIds(env);
 
         try {
-            await jwtVerify(token, JWKS, {
+            const { payload } = await jwtVerify(token, JWKS, {
                 issuer,
                 audience: env.FIREBASE_PROJECT_ID,
             });
+            if (payload.approved !== true) {
+                return jsonResponse({ error: 'Approval required.' }, 403, corsHeaders);
+            }
+            const hqId = payload.hqId;
+            if (allowedHqIds.length > 0 && (!hqId || typeof hqId !== 'string' || !allowedHqIds.includes(hqId))) {
+                return jsonResponse({ error: 'Invalid headquarter.' }, 403, corsHeaders);
+            }
         } catch (error) {
             console.warn('Token verification failed:', error);
             return jsonResponse({ error: 'Invalid token.' }, 401, corsHeaders);

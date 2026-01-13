@@ -184,7 +184,7 @@
     }
 
     .drag-item.dragging {
-        transform: rotate(2deg) scale(0.96);
+        transform: scale(0.98);
         z-index: 100;
         box-shadow:
             0 25px 30px -10px rgba(0, 0, 0, 0.15),
@@ -283,8 +283,10 @@
     .scroll-container {
         overflow-y: auto;
         overflow-x: hidden;
-        scrollbar-width: thin;
-        scrollbar-color: #94a3b8 #f1f5f9;
+        @supports (scrollbar-width: thin) {
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 #f1f5f9;
+        }
     }
 
     .scroll-container::-webkit-scrollbar {

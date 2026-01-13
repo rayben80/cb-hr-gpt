@@ -1,6 +1,9 @@
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { ArrowsOutSimple, DotsSixVertical, DotsThree, PencilSimple, Star, Trash, X } from '@phosphor-icons/react';
 import React, { memo, useMemo } from 'react';
 import { Member as MemberType } from '../../constants';
+import { getDisplayAvatarUrl } from '../../utils/avatarUtils';
 import { Badge, Dropdown, DropdownItem } from '../common';
 import { StatusBadge } from '../feedback/Status';
 
@@ -90,7 +93,6 @@ const MemberActions = memo(
         onMove: () => void;
         onEdit: () => void;
         onDelete: () => void;
-
         onAssignTeamLead?: (() => void) | undefined;
         onRemoveTeamLead?: (() => void) | undefined;
         isTeamLead?: boolean | undefined;
@@ -133,10 +135,11 @@ const MemberActions = memo(
 MemberActions.displayName = 'MemberActions';
 
 // --- Drag Handle ---
-const DragHandle = memo(() => (
+const DragHandle = memo((props: any) => (
     <div
+        {...props}
         data-testid="drag-handle"
-        className="flex items-center justify-center w-6 h-6 text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center justify-center w-6 h-6 text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing"
     >
         <DotsSixVertical className="w-4 h-4" weight="regular" />
     </div>
@@ -149,32 +152,44 @@ interface MemberProps {
     onDelete: (member: MemberType) => void;
     onMove?: (member: MemberType) => void;
     baseDate: string;
-    isDragging?: boolean;
-
-    onDragStart?: (member: MemberType) => void;
-    onDragEnd?: () => void;
     isTeamLead?: boolean;
     onAssignTeamLead?: (member: MemberType) => void;
     onRemoveTeamLead?: (member: MemberType) => void;
+    isOverlay?: boolean;
+    forceDragging?: boolean;
 }
 
-export const Member: React.FC<MemberProps> = memo(
+// --- Member Card (UI Component) ---
+export const MemberCard = memo(
     ({
         member,
         onEdit,
         onDelete,
         onMove,
         baseDate,
-        isDragging = false,
-        onDragStart,
-        onDragEnd,
         isTeamLead,
         onAssignTeamLead,
         onRemoveTeamLead,
+        isOverlay,
+        activeDragging,
+        setNodeRef,
+        style,
+        attributes,
+        listeners,
+    }: MemberProps & {
+        activeDragging?: boolean;
+        setNodeRef?: (node: HTMLElement | null) => void;
+        style?: React.CSSProperties;
+        attributes?: any;
+        listeners?: any;
     }) => {
         const duration = useMemo(
             () => calculateServiceDuration(member.hireDate, baseDate),
             [member.hireDate, baseDate]
+        );
+        const avatarSrc = useMemo(
+            () => getDisplayAvatarUrl(member.name, member.avatar, member.email),
+            [member.avatar, member.email, member.name]
         );
 
         const stop = (e?: React.MouseEvent) => e?.stopPropagation();
@@ -190,27 +205,24 @@ export const Member: React.FC<MemberProps> = memo(
             stop();
             onMove?.(member);
         };
-        const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-            e.dataTransfer.setData('memberId', member.id);
-            e.dataTransfer.effectAllowed = 'move';
-            onDragStart?.(member);
-        };
 
         return (
             <div
-                className={`drag-item table table-fixed w-full gap-2 sm:gap-4 p-2 sm:p-3 group hover:bg-muted/50 rounded-md cursor-pointer transition-all duration-200 ${isDragging ? 'dragging opacity-50 scale-95' : ''}`}
-                draggable
-                onDragStart={handleDragStart}
-                onDragEnd={onDragEnd}
+                ref={setNodeRef}
+                style={style}
+                className={`drag-item table table-fixed w-full gap-2 sm:gap-4 p-2 sm:p-3 group hover:bg-muted/50 rounded-md transition-all duration-200 ${
+                    activeDragging ? 'dragging opacity-50 scale-95' : ''
+                } ${isOverlay ? 'bg-white shadow-xl ring-1 ring-primary/20 scale-105 z-50' : ''}`}
             >
                 <div className="hidden sm:table-cell sm:align-middle w-6 pr-2">
-                    <DragHandle />
+                    {/* Hide drag handle in overlay if desired, or keep it. Keeping for consistency. */}
+                    <DragHandle {...attributes} {...listeners} />
                 </div>
                 <div className="table-cell align-middle pr-2 sm:pr-4">
                     <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
                         <img
                             className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0 bg-muted"
-                            src={member.avatar}
+                            src={avatarSrc}
                             alt={`${member.name} avatar`}
                         />
                         <div className="flex-1 min-w-0">
@@ -265,11 +277,39 @@ export const Member: React.FC<MemberProps> = memo(
                     </div>
                 </div>
                 <div className="table-cell align-middle w-6 sm:hidden">
-                    <DragHandle />
+                    <DragHandle {...attributes} {...listeners} />
                 </div>
             </div>
         );
     }
 );
+MemberCard.displayName = 'MemberCard';
+
+export const Member: React.FC<MemberProps> = memo((props) => {
+    const { member, forceDragging } = props;
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: member.id,
+        data: { ...member, type: 'member' },
+    });
+
+    const activeDragging = isDragging || forceDragging;
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: activeDragging ? 0.4 : 1,
+    };
+
+    return (
+        <MemberCard
+            {...props}
+            activeDragging={activeDragging || false}
+            setNodeRef={setNodeRef}
+            style={style}
+            attributes={attributes}
+            listeners={listeners}
+        />
+    );
+});
 
 Member.displayName = 'Member';

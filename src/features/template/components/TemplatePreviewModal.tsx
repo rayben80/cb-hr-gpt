@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import { CloseButton } from '../../../components/common/index';
 import { Button } from '../../../components/common';
+import { Modal, ModalFooter, ModalHeader } from '../../../components/common/Modal';
 import { EvaluationItem } from '../../../constants';
 
 interface TemplatePreviewModalProps {
@@ -30,9 +30,15 @@ export const TemplatePreviewModal = memo(({
     if (!show) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                <div className="p-6 border-b border-slate-200 flex items-start justify-between">
+        <Modal
+            open={show}
+            onOpenChange={(open) => !open && onClose()}
+            maxWidth="sm:max-w-3xl"
+            className="p-0 max-h-[90vh] overflow-hidden"
+            bodyClassName="p-0"
+        >
+            <div className="bg-white rounded-2xl flex flex-col max-h-[90vh]">
+                <ModalHeader className="flex items-start justify-between">
                     <div>
                         <p className="text-sm text-slate-500">{template.type} · {template.category || '미지정'}</p>
                         <h2 className="text-xl font-bold text-slate-900 mt-1">{template.name || '새 템플릿'}</h2>
@@ -43,8 +49,7 @@ export const TemplatePreviewModal = memo(({
                             ))}
                         </div>
                     </div>
-                    <CloseButton onClick={onClose} />
-                </div>
+                </ModalHeader>
                 <div className="p-6 space-y-4 overflow-y-auto max-h-[70vh]">
                     <div className="bg-slate-50 rounded-lg p-4 flex items-center justify-between text-sm text-slate-600">
                         <span>총 항목: {template.items.length}개</span>
@@ -67,13 +72,13 @@ export const TemplatePreviewModal = memo(({
                         ))}
                     </div>
                 </div>
-                <div className="p-6 border-t border-slate-200 flex justify-end">
+                <ModalFooter className="flex justify-end">
                     <Button variant="outline" onClick={onClose}>
                         닫기
                     </Button>
-                </div>
+                </ModalFooter>
             </div>
-        </div>
+        </Modal>
     );
 });
 

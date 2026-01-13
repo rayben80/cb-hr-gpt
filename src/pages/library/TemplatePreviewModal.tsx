@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from 'react';
 import { Button } from '../../components/common';
-import { CloseButton } from '../../components/common/index';
+import { Modal, ModalFooter, ModalHeader } from '../../components/common/Modal';
 import { EvaluationTemplate } from '../../constants';
 import { TemplateContentTab } from './TemplateContentTab';
 import { TemplateHistoryTab } from './TemplateHistoryTab';
@@ -32,15 +32,17 @@ export const TemplatePreviewModal = memo(
         );
 
         return (
-            <div
-                className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4"
-                onClick={onClose}
+            <Modal
+                open={true}
+                onOpenChange={(open) => !open && onClose()}
+                maxWidth="sm:max-w-3xl"
+                className="p-0 max-h-[90vh] overflow-hidden"
+                bodyClassName="p-0"
             >
-                <div
-                    className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden"
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <ModalHeader template={template} versionLabel={versionLabel} tags={tags} onClose={onClose} />
+                <div className="bg-white rounded-2xl flex flex-col max-h-[90vh]">
+                    <ModalHeader className="flex items-start justify-between">
+                        <TemplatePreviewHeader template={template} versionLabel={versionLabel} tags={tags} />
+                    </ModalHeader>
 
                     {hasVersionHistory && (
                         <TabNavigation
@@ -68,7 +70,7 @@ export const TemplatePreviewModal = memo(
                         )}
                     </div>
 
-                    <div className="p-6 border-t border-slate-200 flex justify-end gap-2">
+                    <ModalFooter className="flex justify-end gap-2">
                         {activeTab === 'content' && (
                             <>
                                 {onStart && (
@@ -91,9 +93,9 @@ export const TemplatePreviewModal = memo(
                         <Button variant="outline" onClick={onClose}>
                             닫기
                         </Button>
-                    </div>
+                    </ModalFooter>
                 </div>
-            </div>
+            </Modal>
         );
     }
 );
@@ -101,42 +103,38 @@ export const TemplatePreviewModal = memo(
 TemplatePreviewModal.displayName = 'TemplatePreviewModal';
 
 // Sub-components
-interface ModalHeaderProps {
+interface TemplatePreviewHeaderProps {
     template: EvaluationTemplate;
     versionLabel: string;
     tags: string[];
-    onClose: () => void;
 }
 
-const ModalHeader = memo(({ template, versionLabel, tags, onClose }: ModalHeaderProps) => (
-    <div className="p-6 border-b border-slate-200 flex items-start justify-between">
-        <div>
-            <p className="text-sm text-slate-500">
-                {template.type} · {template.category || '미지정'}
-            </p>
-            <h2 className="text-xl font-bold text-slate-900 mt-1">{template.name}</h2>
-            <div className="mt-2 text-xs text-slate-500 flex flex-wrap gap-3">
-                <span>{versionLabel}</span>
-                <span>수정: {template.lastUpdated}</span>
-                <span>작성자: {template.author}</span>
-                {template.favorite && <span className="text-amber-600">즐겨찾기</span>}
-                {template.archived && <span className="text-slate-500">보관됨</span>}
-            </div>
-            {tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                        <span key={tag} className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                            {tag}
-                        </span>
-                    ))}
-                </div>
-            )}
+const TemplatePreviewHeader = memo(({ template, versionLabel, tags }: TemplatePreviewHeaderProps) => (
+    <div>
+        <p className="text-sm text-slate-500">
+            {template.type} · {template.category || '미지정'}
+        </p>
+        <h2 className="text-xl font-bold text-slate-900 mt-1">{template.name}</h2>
+        <div className="mt-2 text-xs text-slate-500 flex flex-wrap gap-3">
+            <span>{versionLabel}</span>
+            <span>수정: {template.lastUpdated}</span>
+            <span>작성자: {template.author}</span>
+
+            {template.archived && <span className="text-slate-500">보관됨</span>}
         </div>
-        <CloseButton onClick={onClose} />
+        {tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                    <span key={tag} className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                        {tag}
+                    </span>
+                ))}
+            </div>
+        )}
     </div>
 ));
 
-ModalHeader.displayName = 'ModalHeader';
+TemplatePreviewHeader.displayName = 'TemplatePreviewHeader';
 
 interface TabNavigationProps {
     activeTab: 'content' | 'history';

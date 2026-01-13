@@ -18,7 +18,7 @@ export const Toggle = ({
         <button
             onClick={() => setEnabled(!enabled)}
             role="switch"
-            aria-checked={enabled ? 'true' : 'false'}
+            aria-checked={enabled}
             aria-label={label}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${enabled ? 'bg-primary' : 'bg-muted'}`}
         >

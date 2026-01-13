@@ -66,7 +66,14 @@ describe('useMemberManagement Hook', () => {
         },
     ];
 
-    const mockSetTeams = vi.fn();
+    const mockFirestoreActions = {
+        addTeam: vi.fn(),
+        updateTeam: vi.fn(),
+        deleteTeam: vi.fn(),
+        addMember: vi.fn(),
+        updateMember: vi.fn(),
+        deleteMember: vi.fn(),
+    };
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -77,7 +84,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('초기 상태가 올바르게 설정되어야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         expect(result.current.isModalOpen).toBe(false);
         expect(result.current.editingMember).toBe(null);
@@ -85,7 +92,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('멤버 추가 모달을 올바르게 열어야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         act(() => {
             result.current.handleAddMember('team1', 'part1');
@@ -100,7 +107,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('멤버 편집 모달을 올바르게 열어야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         const testMember = mockTeams[0].parts[0].members[0];
 
@@ -114,7 +121,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('모달을 올바르게 닫을 수 있어야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         // 먼저 모달을 열고
         act(() => {
@@ -132,7 +139,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('멤버의 위치를 올바르게 찾아야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         const testMember = mockTeams[0].parts[0].members[0];
 
@@ -152,7 +159,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('삭제 확인 다이얼로그를 올바르게 표시해야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         const testMember = mockTeams[0].parts[0].members[0];
 
@@ -171,7 +178,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('복직 확인 다이얼로그를 올바르게 표시해야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         const resignedMember = {
             ...mockTeams[0].parts[0].members[1],
@@ -194,7 +201,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('퇴사자 영구 삭제 확인 다이얼로그를 올바르게 표시해야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         const resignedMember = mockTeams[0].parts[0].members[1];
 
@@ -213,7 +220,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('필요한 액션 함수들을 제공해야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         expect(typeof result.current.handleAddMember).toBe('function');
         expect(typeof result.current.handleEditMember).toBe('function');
@@ -224,7 +231,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('비동기 작업 상태가 포함되어야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         expect(result.current.saveOperation).toBeDefined();
         expect(result.current.deleteOperation).toBeDefined();
@@ -233,7 +240,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('확인 다이얼로그 상태가 포함되어야 한다', () => {
-        const { result } = renderHook(() => useMemberManagement(mockTeams, mockSetTeams));
+        const { result } = renderHook(() => useMemberManagement(mockTeams, mockFirestoreActions));
 
         expect(result.current.confirmation).toBeDefined();
         expect(result.current.confirmation.isOpen).toBe(false);
@@ -241,7 +248,7 @@ describe('useMemberManagement Hook', () => {
     });
 
     it('멤버 데이터가 변경될 때 Hook이 업데이트되어야 한다', () => {
-        const { result, rerender } = renderHook(({ teams }) => useMemberManagement(teams, mockSetTeams), {
+        const { result, rerender } = renderHook(({ teams }) => useMemberManagement(teams, mockFirestoreActions), {
             initialProps: { teams: mockTeams },
         });
 

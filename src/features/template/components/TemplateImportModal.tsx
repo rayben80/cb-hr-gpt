@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { CloseButton } from '../../../components/common/index';
+import { Modal, ModalHeader } from '../../../components/common/Modal';
 import { EvaluationTemplate } from '../../../constants';
 
 interface TemplateImportModalProps {
@@ -29,14 +29,17 @@ export const TemplateImportModal = memo(({
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-lg font-bold text-slate-900">템플릿에서 항목 가져오기</h2>
-                    </div>
-                    <CloseButton onClick={onClose} size="sm" />
-                </div>
+        <Modal
+            open={show}
+            onOpenChange={(open) => !open && onClose()}
+            maxWidth="sm:max-w-lg"
+            className="p-0 max-h-[80vh] overflow-hidden"
+            bodyClassName="p-0"
+        >
+            <div className="bg-white rounded-2xl flex flex-col max-h-[80vh]">
+                <ModalHeader>
+                    <h2 className="text-lg font-bold text-slate-900">템플릿에서 항목 가져오기</h2>
+                </ModalHeader>
                 <div className="p-6 space-y-3 overflow-y-auto max-h-[60vh]">
                     {filteredTemplates.length === 0 ? (
                         <p className="text-sm text-slate-500 text-center py-8">가져올 수 있는 템플릿이 없습니다.</p>
@@ -54,7 +57,7 @@ export const TemplateImportModal = memo(({
                     )}
                 </div>
             </div>
-        </div>
+        </Modal>
     );
 });
 

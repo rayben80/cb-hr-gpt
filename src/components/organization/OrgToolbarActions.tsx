@@ -51,7 +51,7 @@ export const OrgToolbarActions: React.FC<OrgToolbarActionsProps> = ({
                 <div className="relative group">
                     <Button
                         variant="outline"
-                        className="gap-2 px-3 py-2 text-sm font-medium shadow-sm hover:border-primary/50 hover:text-primary group-hover:ring-1 group-hover:ring-primary/20 bg-background text-foreground"
+                        className="gap-2 h-12 px-4 text-sm font-medium shadow-sm hover:border-primary/50 hover:text-primary group-hover:ring-1 group-hover:ring-primary/20 bg-background text-foreground"
                     >
                         {sortOption === 'name_asc' ? (
                             <SortAscending

@@ -10,19 +10,13 @@ import {
     getReinstateMemberConfirmationConfig,
 } from './memberOperationUtils';
 import { findMemberLocation } from './memberStateUtils';
+import { FirestoreActions } from './firestoreActions';
 import { SaveMemberOptions } from './useMemberOperations';
 
 /** Extended Member type with location info for resigned member operations */
 interface MemberWithLocation extends MemberType {
-    teamId?: string | undefined;
-    partId?: string | undefined;
-}
-
-interface FirestoreActions {
-    addMember: (member: Omit<MemberType, 'id'>) => Promise<string>;
-    updateMember: (id: string, data: Partial<MemberType>) => Promise<void>;
-    deleteMember: (id: string) => Promise<void>;
-    updateTeam: (id: string, data: Partial<Team>) => Promise<void>;
+    teamId?: string | null | undefined;
+    partId?: string | null | undefined;
 }
 
 interface UseMemberOperationHandlersProps {
@@ -61,14 +55,14 @@ export const useMemberOperationHandlers = ({
         async (data: MemberType, isEditing: boolean, options?: SaveMemberOptions) => {
             const { teamId, partId, ...memberData } = data;
 
-            // Validate required location for new members
-            if (!isEditing && (!teamId || !partId)) {
-                showError('팀과 파트 정보가 필요합니다.');
+            const resolvedTeamId = teamId?.trim() || '';
+            if (!resolvedTeamId) {
+                showError('팀 정보가 필요합니다.');
                 return;
             }
-
-            const resolvedTeamId = teamId ?? '';
-            const resolvedPartId = partId ?? '';
+            const resolvedPartId = partId ? partId : null;
+            const team = teams.find((t) => t.id === resolvedTeamId);
+            const part = resolvedPartId ? team?.parts.find((p) => p.id === resolvedPartId) : undefined;
 
             await saveOperationActions.execute(
                 async () => {
@@ -76,9 +70,13 @@ export const useMemberOperationHandlers = ({
                         ...memberData,
                         teamId: resolvedTeamId,
                         partId: resolvedPartId,
+                        ...(team?.name ? { teamName: team.name } : {}),
+                        partName: resolvedPartId ? part?.title ?? null : null,
                         // Ensure status is set for new members if not provided
                         status: memberData.status || 'active',
                     };
+
+                    let resolvedMemberId = memberData.id;
 
                     // 1. Save/Update Member
                     if (isEditing && memberData.id) {
@@ -87,7 +85,7 @@ export const useMemberOperationHandlers = ({
                         // For new member, id might be empty/temp, let Firestore generate it
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         const { id, ...newMemberData } = memberPayload;
-                        await firestoreActions.addMember(newMemberData);
+                        resolvedMemberId = await firestoreActions.addMember(newMemberData);
                     }
 
                     // 2. Handle Team Lead updates if requested
@@ -95,21 +93,15 @@ export const useMemberOperationHandlers = ({
                         if (options?.setTeamLead) {
                             await firestoreActions.updateTeam(resolvedTeamId, {
                                 lead: memberData.name,
-                                leadId: memberData.id, // For new members this might be missing ID.
-                                // Logic Gap: Setting lead for NEW member requires known ID.
-                                // If adding new member and setting as lead immediately, we need the ID returned from addMember.
-                                // But current UI flow usually adds then sets lead?
-                                // Or does the modal allow "Set as Leader" check?
-                                // Assuming "Set as Leader" is an option in the modal.
-                                // If so, we need to defer this or capture ID.
+                                leadId: resolvedMemberId || null,
                             });
                         } else if (options?.clearTeamLead) {
                             // Check if this member IS the leader before clearing?
                             // Options imply explicit action.
                             await firestoreActions.updateTeam(resolvedTeamId, {
                                 lead: '',
-                                leadId: null, // Use null to clear
-                            } as any);
+                                leadId: null,
+                            });
                         }
                     }
 
@@ -118,7 +110,7 @@ export const useMemberOperationHandlers = ({
                 createSaveOptions(isEditing, onOperationSuccess, options)
             );
         },
-        [saveOperationActions, firestoreActions, onOperationSuccess, showError]
+        [teams, saveOperationActions, firestoreActions, onOperationSuccess, showError]
     );
 
     const handleDeleteMember = useCallback(

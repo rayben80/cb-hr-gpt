@@ -32,6 +32,9 @@ export default defineConfig({
             ...process.env,
             VITE_GOOGLE_CHAT_WEBHOOK_URL:
                 'https://chat.googleapis.com/v1/spaces/AAA/messages?key=example&token=example',
+            VITE_E2E_BYPASS_AUTH: 'true',
+            VITE_E2E_ROLE: 'SUPER_ADMIN',
+            VITE_E2E_MOCK_DATA: 'true',
         },
         reuseExistingServer: false,
         timeout: 120 * 1000,

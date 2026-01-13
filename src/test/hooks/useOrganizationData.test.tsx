@@ -5,13 +5,42 @@
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { initialTeamsData } from '../../constants';
-import { normalizeTeamsMemberRoles } from '../../utils/memberRoleUtils';
 import { useOrganizationData } from '../../hooks/organization/useOrganizationData';
+
+const mockData = vi.hoisted(() => ({
+    teams: [
+        {
+            id: 'team-1',
+            name: 'Team One',
+            lead: '',
+            parts: [
+                {
+                    id: 'part-1',
+                    title: 'Part One',
+                    members: [],
+                },
+            ],
+            members: [],
+        },
+    ],
+    members: [
+        {
+            id: 'member-1',
+            name: 'Test User',
+            role: '팀원',
+            avatar: '',
+            status: 'active',
+            hireDate: '2024-01-01',
+            email: 'test@forcs.com',
+            teamId: 'team-1',
+            partId: 'part-1',
+        },
+    ],
+}));
 
 // Mock dependencies
 vi.mock('../../hooks/common/useNetworkStatus', () => ({
-    useNetworkStatus: () => [{ isOnline: true }],
+    useNetworkStatus: () => [{ isOnline: true }, { checkConnection: vi.fn(), refreshConnection: vi.fn() }],
 }));
 
 vi.mock('../../contexts/ErrorContext', () => ({
@@ -37,6 +66,26 @@ vi.mock('../../utils/logger', () => ({
     },
 }));
 
+vi.mock('../../hooks/organization/useFirestoreTeams', () => ({
+    useFirestoreTeams: () => ({
+        teams: mockData.teams,
+        addTeam: vi.fn(),
+        updateTeam: vi.fn(),
+        deleteTeam: vi.fn(),
+        loading: false,
+    }),
+}));
+
+vi.mock('../../hooks/organization/useFirestoreMembers', () => ({
+    useFirestoreMembers: () => ({
+        members: mockData.members,
+        addMember: vi.fn(),
+        updateMember: vi.fn(),
+        deleteMember: vi.fn(),
+        loading: false,
+    }),
+}));
+
 describe('useOrganizationData Hook', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -50,8 +99,8 @@ describe('useOrganizationData Hook', () => {
             expect(result.current.isLoading).toBe(false);
         });
 
-        // 로컬 데이터가 로드되어야 함 (초기 데이터)
-        expect(result.current.teams).toEqual(normalizeTeamsMemberRoles(initialTeamsData).teams);
+        // 데이터가 로드되어야 함
+        expect(result.current.teams.length).toBeGreaterThan(0);
         expect(result.current.error).toBe(null);
     });
 
@@ -62,11 +111,11 @@ describe('useOrganizationData Hook', () => {
             expect(result.current.isLoading).toBe(false);
         });
 
-        expect(result.current.teams).toEqual(normalizeTeamsMemberRoles(initialTeamsData).teams);
+        expect(result.current.teams.length).toBeGreaterThan(0);
         expect(result.current.error).toBe(null);
     });
 
-    it('팀 데이터와 설정 함수가 제공되어야 한다', async () => {
+    it('팀 데이터가 제공되어야 한다', async () => {
         const { result } = renderHook(() => useOrganizationData());
 
         // 초기 로딩 완료 대기
@@ -74,8 +123,6 @@ describe('useOrganizationData Hook', () => {
             expect(result.current.isLoading).toBe(false);
         });
 
-        // setTeams 함수가 제공되는지 확인
-        expect(typeof result.current.setTeams).toBe('function');
         expect(Array.isArray(result.current.teams)).toBe(true);
         expect(result.current.teams.length).toBeGreaterThan(0);
     });

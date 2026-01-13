@@ -21,6 +21,7 @@ export interface OrganizationContentProps {
     renderTeamCardCompact: (team: Team) => React.ReactNode;
     searchTerm: string;
     openTeamModal: (mode: 'add', data: any) => void;
+    teams: Team[];
 
     // Inactive Props
     showOnLeaveList: boolean;
@@ -30,6 +31,7 @@ export interface OrganizationContentProps {
     handleDeleteMember: (member: Member) => void;
     handleDeleteResignedMember: (member: Member) => void;
     baseDate: string;
+    hideSingleHeadquarterHeader?: boolean;
 }
 
 export const OrganizationContent = memo(
@@ -53,6 +55,7 @@ export const OrganizationContent = memo(
         handleDeleteMember,
         handleDeleteResignedMember,
         baseDate,
+        hideSingleHeadquarterHeader = false,
     }: OrganizationContentProps) => {
         const { canManageHeadquarterLead } = useRole();
 
@@ -72,6 +75,7 @@ export const OrganizationContent = memo(
                             renderTeamCard={renderTeamCard}
                             renderTeamCardCompact={renderTeamCardCompact}
                             canManageHeadquarterLead={canManageHeadquarterLead}
+                            hideHeader={hideSingleHeadquarterHeader && groupedHeadquarters.sections.length === 1}
                         />
                     ))}
                     {groupedHeadquarters.unassignedTeams.length > 0 && (

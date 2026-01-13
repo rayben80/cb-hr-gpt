@@ -1,6 +1,7 @@
-import { X } from '@phosphor-icons/react';
 import React, { memo, useCallback, useState } from 'react';
 import { Member, Team } from '../../constants';
+import { Modal, ModalFooter, ModalHeader } from '../common/Modal';
+import { getDisplayAvatarUrl } from '../../utils/avatarUtils';
 
 interface MemberMoveModalProps {
     isOpen: boolean;
@@ -12,7 +13,11 @@ interface MemberMoveModalProps {
 
 const MemberPreview = memo(({ member }: { member: Member }) => (
     <div className="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-lg">
-        <img className="h-12 w-12 rounded-full object-cover" src={member.avatar} alt={`${member.name} avatar`} />
+        <img
+            className="h-12 w-12 rounded-full object-cover"
+            src={getDisplayAvatarUrl(member.name, member.avatar, member.email)}
+            alt={`${member.name} avatar`}
+        />
         <div>
             <p className="font-semibold text-slate-800">{member.name}</p>
             <p className="text-sm text-slate-500">{member.role}</p>
@@ -83,7 +88,7 @@ PartSelector.displayName = 'PartSelector';
 
 const ActionButtons = memo(
     ({ onCancel, onConfirm, disabled }: { onCancel: () => void; onConfirm: () => void; disabled: boolean }) => (
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-3">
             <button
                 onClick={onCancel}
                 className="flex-1 px-4 py-3 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors"
@@ -133,51 +138,43 @@ export const MemberMoveModal: React.FC<MemberMoveModalProps> = ({ isOpen, onClos
         }
     }, [member, selectedTeamId, selectedPartId, onMove, onClose]);
 
-    const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) onClose();
-    };
-
     if (!isOpen || !member) return null;
 
     const selectedTeam = teams.find((team) => team.id === selectedTeamId);
     const parts = selectedTeam ? selectedTeam.parts : [];
 
     return (
-        <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={handleBackdropClick}
+        <Modal
+            open={isOpen}
+            onOpenChange={(open) => !open && onClose()}
+            maxWidth="sm:max-w-md"
+            className="p-0"
+            bodyClassName="p-0"
         >
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md transform transition-all">
-                <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-slate-900">멤버 이동</h2>
-                        <button
-                            onClick={onClose}
-                            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
-                            aria-label="닫기"
-                        >
-                            <X className="w-5 h-5" weight="regular" />
-                        </button>
-                    </div>
+            <div className="bg-white rounded-xl w-full max-w-md transform transition-all">
+                <ModalHeader>
+                    <h2 className="text-xl font-bold text-slate-900">멤버 이동</h2>
+                </ModalHeader>
+                <div className="p-6 space-y-4">
                     <MemberPreview member={member} />
-                    <div className="space-y-4">
-                        <TeamSelector teams={teams} value={selectedTeamId} onChange={handleTeamChange} />
-                        {selectedTeamId && (
-                            <PartSelector
-                                parts={parts}
-                                value={selectedPartId}
-                                onChange={setSelectedPartId}
-                                disabled={!selectedTeamId}
-                            />
-                        )}
-                    </div>
+                    <TeamSelector teams={teams} value={selectedTeamId} onChange={handleTeamChange} />
+                    {selectedTeamId && (
+                        <PartSelector
+                            parts={parts}
+                            value={selectedPartId}
+                            onChange={setSelectedPartId}
+                            disabled={!selectedTeamId}
+                        />
+                    )}
+                </div>
+                <ModalFooter>
                     <ActionButtons
                         onCancel={onClose}
                         onConfirm={handleMove}
                         disabled={!selectedTeamId || !selectedPartId}
                     />
-                </div>
+                </ModalFooter>
             </div>
-        </div>
+        </Modal>
     );
 };

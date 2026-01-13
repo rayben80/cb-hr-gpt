@@ -66,8 +66,11 @@ export const EvaluationTableBody = memo(
                         >
                             진행률
                         </th>
-                        <th scope="col" className="relative px-6 py-3">
-                            <span className="sr-only">Actions</span>
+                        <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider"
+                        >
+                            모니터링
                         </th>
                     </tr>
                 </thead>
@@ -102,14 +105,20 @@ export const EvaluationTableBody = memo(
                                         <span className="text-sm text-slate-600">{e.progress}%</span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                                     <button
                                         onClick={() => onOpenMonitoring(e)}
-                                        className="text-slate-400 hover:text-primary transition-colors"
-                                        title="모니터링 및 관리"
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+                                        title="모니터링"
                                     >
                                         <Gear className="w-5 h-5" weight="regular" />
+                                        <span className="text-sm font-semibold">모니터링</span>
                                     </button>
+                                    {e.status !== '완료' && (
+                                        <span className="ml-2 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                                            미제출
+                                        </span>
+                                    )}
                                 </td>
                             </tr>
                         ))

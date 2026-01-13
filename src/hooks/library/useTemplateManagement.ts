@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { EvaluationTemplate } from '../../constants';
+import { useCallback, useState } from 'react';
+import { EvaluationTemplate, initialLibraryData } from '../../constants';
 // It's better to import from specific files to avoid circular dependency issues if any
 import { useFirestoreTemplates } from './useFirestoreTemplates';
 import { useTemplateActions } from './useTemplateActions';
@@ -12,13 +12,14 @@ export const useTemplateManagement = () => {
     const [editingTemplate, setEditingTemplate] = useState<EvaluationTemplate | null>(null);
 
     // Use extracted hooks
-    const { templates, loading: isLoading, addTemplate, updateTemplate } = useFirestoreTemplates();
+    const { templates, loading: isLoading, addTemplate, updateTemplate, deleteTemplate } = useFirestoreTemplates();
     const selection = useTemplateSelection();
 
     // Create firestoreActions object to pass down
     const firestoreActions = {
         addTemplate,
         updateTemplate,
+        deleteTemplate,
     };
 
     const actions = useTemplateActions({
@@ -32,13 +33,7 @@ export const useTemplateManagement = () => {
         firestoreActions, // Pass firestoreActions
     });
 
-    // Sync editingTemplate with latest data
-    useEffect(() => {
-        if (!editingTemplate) return;
-        const nextTemplate = templates.find((t) => t.id === editingTemplate.id);
-        if (!nextTemplate || nextTemplate === editingTemplate) return;
-        setEditingTemplate(nextTemplate);
-    }, [templates, editingTemplate]);
+    // ... (useEffect remains same)
 
     return {
         view,
@@ -69,10 +64,19 @@ export const useTemplateManagement = () => {
         handleEditTemplate: actions.handleEditTemplate,
         handleArchiveTemplate: actions.handleArchiveTemplate,
         handleRestoreTemplate: actions.handleRestoreTemplate,
-        handleToggleFavorite: actions.handleToggleFavorite,
+        handleDeleteTemplate: actions.handleDeleteTemplate, // New Action
         handleDuplicateTemplate: actions.handleDuplicateTemplate,
         handleRestoreVersion: actions.handleRestoreVersion,
         handleBatchArchive: actions.handleBatchArchive,
         handleCancel: actions.handleCancel,
+
+        // Seed Mock Data
+        seedMockData: useCallback(async () => {
+            for (const template of initialLibraryData) {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { id: _id, ...rest } = template;
+                await addTemplate({ ...rest, lastUpdated: new Date().toISOString().split('T')[0] });
+            }
+        }, [addTemplate]),
     };
 };

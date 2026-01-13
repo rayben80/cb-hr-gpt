@@ -69,6 +69,20 @@ export const useMemberSelection = () => {
         setSelectedMembers(new Set());
     }, []);
 
+    const getSelectedMemberObjects = useCallback(
+        (teams: Team[]) => {
+            const allMembers: Member[] = [];
+            teams.forEach((team) => {
+                if (team.members) allMembers.push(...team.members);
+                if (team.parts) {
+                    team.parts.forEach((part) => allMembers.push(...part.members));
+                }
+            });
+            return allMembers.filter((m) => selectedMembers.has(m.name));
+        },
+        [selectedMembers]
+    );
+
     // 정렬된 선택 멤버 목록
     const sortedSelectedMembers = useMemo(() => Array.from(selectedMembers).sort(), [selectedMembers]);
 
@@ -80,6 +94,7 @@ export const useMemberSelection = () => {
         getGroupMembers,
         getGroupSelectionState,
         clearSelection,
+        getSelectedMemberObjects,
     };
 };
 

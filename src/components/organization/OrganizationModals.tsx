@@ -58,7 +58,7 @@ interface OrganizationModalsProps {
     // Member Move Modal
     isMoveModalOpen: boolean;
     closeMoveModal: () => void;
-    handleMoveMember: (targetTeamId: string, targetPartId?: string) => Promise<void>;
+    handleMoveMember: (memberId: string, targetTeamId: string, targetPartId: string) => void;
     memberToMove: Member | null;
 }
 
@@ -93,7 +93,7 @@ export const OrganizationModals = memo(
         return (
             <>
                 {(!partModalState || !teamModalState) && (
-                    <div style={{ display: 'none' }}>
+                    <div className="hidden">
                         {(() => {
                             console.error('OrganizationModals: Missing modal state', {
                                 partModalState,

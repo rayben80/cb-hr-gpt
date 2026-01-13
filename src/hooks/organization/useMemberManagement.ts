@@ -1,11 +1,12 @@
 import { useCallback, useState } from 'react';
 import { Member as MemberType, Team } from '../../constants';
+import { FirestoreActions } from './firestoreActions';
 import { useMemberOperations } from './useMemberOperations';
 
 /**
  * 멤버 관리 로직을 처리하는 커스텀 훅
  */
-export const useMemberManagement = (teams: Team[], firestoreActions: any) => {
+export const useMemberManagement = (teams: Team[], firestoreActions: FirestoreActions) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<MemberType | null>(null);
     const [modalContext, setModalContext] = useState<{ teamId: string; partId: string } | null>(null);

@@ -36,6 +36,7 @@ const EvaluationHeader = memo(({ evaluation, totalScore, answers, template }: Ev
     const completedCount = Object.values(answers).filter((a) => a.score > 0).length;
     const totalItems = template.items?.length || 0;
     const progressPercent = totalItems > 0 ? Math.min(100, (completedCount / totalItems) * 100) : 0;
+    const scaleLabel = evaluation.ratingScale || '100점';
     return (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60">
             <div className="flex justify-between items-start mb-6">
@@ -60,6 +61,7 @@ const EvaluationHeader = memo(({ evaluation, totalScore, answers, template }: Ev
                         {totalScore}
                         <span className="text-lg text-slate-400 font-medium ml-1">점</span>
                     </div>
+                    <div className="text-xs text-slate-400 mt-1">척도 {scaleLabel}</div>
                 </div>
             </div>
             <div className="space-y-2">
@@ -263,25 +265,42 @@ const EvaluationExecution: React.FC<EvaluationExecutionProps> = ({ evaluation, t
 
     useEffect(() => {
         if (!template.items?.length) return;
-        let calculatedTotal = 0,
-            totalWeight = 0;
+        const scoringRule = evaluation.scoringRule || '가중합';
+        const hasWeights = template.items.some((item) => item.weight > 0);
+        const useWeighted = scoringRule === '가중합' && hasWeights;
+        const useSum = scoringRule === '총점합산';
+
+        let calculatedTotal = 0;
+        let totalWeight = 0;
+        let answeredCount = 0;
+
         template.items.forEach((item) => {
             const answer = answers[item.id];
             if (answer?.score > 0) {
-                if (template.items?.some((i) => i.weight > 0)) {
-                    calculatedTotal += (answer.score * item.weight) / 100;
+                if (useWeighted) {
+                    calculatedTotal += answer.score * item.weight;
                     totalWeight += item.weight;
                 } else {
-                    calculatedTotal += answer.score / (template.items?.length || 1);
+                    calculatedTotal += answer.score;
+                    if (!useSum) {
+                        answeredCount += 1;
+                    }
                 }
             }
         });
-        setTotalScore(
-            totalWeight > 0
-                ? Math.round((calculatedTotal / totalWeight) * 100 * 10) / 10
-                : Math.round(calculatedTotal * 10) / 10
-        );
-    }, [answers, template.items]);
+
+        const totalScore = useWeighted
+            ? totalWeight > 0
+                ? calculatedTotal / totalWeight
+                : 0
+            : useSum
+              ? calculatedTotal
+              : answeredCount > 0
+                ? calculatedTotal / answeredCount
+                : 0;
+
+        setTotalScore(Math.round(totalScore * 10) / 10);
+    }, [answers, template.items, evaluation.scoringRule]);
 
     const handleScoreChange = useCallback(
         (itemId: number, score: number, grade?: string) =>

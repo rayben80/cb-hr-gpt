@@ -1,6 +1,7 @@
 import { Plus } from '@phosphor-icons/react';
 import React, { memo } from 'react';
 import { Member, Part, Team } from '../../constants';
+import { getDisplayAvatarUrl } from '../../utils/avatarUtils';
 import { PartSection } from './PartSection';
 
 interface TeamCardCompactContentProps {
@@ -55,7 +56,7 @@ export const TeamCardCompactContent = memo(
                                 >
                                     <div className="flex items-center gap-2 min-w-0">
                                         <img
-                                            src={member.avatar}
+                                            src={getDisplayAvatarUrl(member.name, member.avatar, member.email)}
                                             alt={member.name}
                                             className="w-6 h-6 rounded-full object-cover flex-shrink-0"
                                         />

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { EvaluationTemplate, TEMPLATE_TYPE_OPTIONS } from '../../constants';
+import { useFirestoreCategories } from '../settings/useFirestoreCategories';
 
 export const useLibraryFilters = (templates: EvaluationTemplate[]) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -8,6 +9,9 @@ export const useLibraryFilters = (templates: EvaluationTemplate[]) => {
     const [showArchived, setShowArchived] = useState(false);
     const [sortField, setSortField] = useState<'name' | 'lastUpdated' | 'author' | 'questions'>('lastUpdated');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+    // Firestore에서 카테고리 목록 가져오기
+    const { editorCategoryOptions: firestoreCategories } = useFirestoreCategories();
 
     const toggleSortOrder = () => setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
 
@@ -20,13 +24,13 @@ export const useLibraryFilters = (templates: EvaluationTemplate[]) => {
     }, [templates]);
 
     const categoryOptions = useMemo(() => {
-        // Initial preset categories to ensure they always appear
-        const optionSet = new Set<string>(['공통', '직군별', '팀별', 'PM/PL']);
+        // Firestore 카테고리 + 템플릿에서 추출한 카테고리 병합
+        const optionSet = new Set<string>(firestoreCategories);
         templates.forEach((t) => {
             if (t.category) optionSet.add(t.category);
         });
         return ['전체', ...Array.from(optionSet)];
-    }, [templates]);
+    }, [templates, firestoreCategories]);
 
     const sortedTemplates = useMemo(() => {
         const result = templates.filter((t) => {
@@ -40,6 +44,7 @@ export const useLibraryFilters = (templates: EvaluationTemplate[]) => {
         });
 
         result.sort((a, b) => {
+            // 정렬 필드 적용
             let comparison = 0;
             switch (sortField) {
                 case 'name':

@@ -1,4 +1,4 @@
-import { Archive, ArrowCounterClockwise, ArrowLeft, Star } from '@phosphor-icons/react';
+import { Archive, ArrowCounterClockwise, ArrowLeft } from '@phosphor-icons/react';
 import { memo } from 'react';
 import { Button } from '../../../components/common';
 
@@ -6,11 +6,9 @@ interface TemplateHeaderToolbarProps {
     templateId: string | number;
     title: string;
     description: string;
-    isFavorite: boolean;
     isArchived: boolean;
     onCancel: () => void;
     onSave: () => void;
-    onToggleFavorite: () => void;
     onArchive: () => void;
     onRestore: () => void;
     validationMessages: string[];
@@ -21,11 +19,9 @@ export const TemplateHeaderToolbar = memo(
         templateId,
         title,
         description,
-        isFavorite,
         isArchived,
         onCancel,
         onSave,
-        onToggleFavorite,
         onArchive,
         onRestore,
         validationMessages,
@@ -44,16 +40,6 @@ export const TemplateHeaderToolbar = memo(
                 <div className="flex items-center gap-2">
                     {templateId !== 0 && (
                         <>
-                            <Button
-                                variant="outline"
-                                onClick={onToggleFavorite}
-                                className={
-                                    isFavorite ? 'text-yellow-500 border-yellow-200 bg-yellow-50' : 'text-slate-400'
-                                }
-                            >
-                                <Star className="w-4 h-4 mr-2" weight={isFavorite ? 'fill' : 'regular'} />
-                                {isFavorite ? '즐겨찾기 해제' : '즐겨찾기'}
-                            </Button>
                             {isArchived ? (
                                 <Button
                                     variant="outline"

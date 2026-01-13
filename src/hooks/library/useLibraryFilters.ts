@@ -25,13 +25,13 @@ export function useLibraryFilters({
 }: UseLibraryFiltersOptions) {
     const typeOptions = useMemo(() => {
         const typeSet = new Set<string>(TEMPLATE_TYPE_OPTIONS);
-        templates.forEach(template => typeSet.add(template.type));
+        templates.forEach((template) => typeSet.add(template.type));
         return ['전체', ...Array.from(typeSet)];
     }, [templates]);
 
     const categoryOptions = useMemo(() => {
         const categorySet = new Set<string>();
-        templates.forEach(template => {
+        templates.forEach((template) => {
             if (template.category) {
                 categorySet.add(template.category);
             }
@@ -41,26 +41,22 @@ export function useLibraryFilters({
 
     const filteredTemplates = useMemo(() => {
         const query = searchTerm.trim().toLowerCase();
-        return templates.filter(template => {
+        return templates.filter((template) => {
             if (!showArchived && template.archived) return false;
             if (typeFilter !== '전체' && template.type !== typeFilter) return false;
             if (categoryFilter !== '전체' && template.category !== categoryFilter) return false;
             if (!query) return true;
             return (
-                template.name.toLowerCase().includes(query)
-                || template.type.toLowerCase().includes(query)
-                || (template.category?.toLowerCase().includes(query) ?? false)
-                || (template.tags || []).some(tag => tag.toLowerCase().includes(query))
+                template.name.toLowerCase().includes(query) ||
+                template.type.toLowerCase().includes(query) ||
+                (template.category?.toLowerCase().includes(query) ?? false) ||
+                (template.tags || []).some((tag) => tag.toLowerCase().includes(query))
             );
         });
     }, [templates, searchTerm, typeFilter, categoryFilter, showArchived]);
 
     const sortedTemplates = useMemo(() => {
         const sorted = [...filteredTemplates].sort((a, b) => {
-            // Favorites first
-            const favoriteSort = (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0);
-            if (favoriteSort !== 0) return favoriteSort;
-
             // Then by selected field
             let comparison = 0;
             switch (sortField) {
@@ -71,8 +67,8 @@ export function useLibraryFilters({
                     comparison = a.lastUpdated.localeCompare(b.lastUpdated);
                     break;
                 case 'questions': {
-                    const aCount = a.items ? a.items.length : (a.questions || 0);
-                    const bCount = b.items ? b.items.length : (b.questions || 0);
+                    const aCount = a.items ? a.items.length : a.questions || 0;
+                    const bCount = b.items ? b.items.length : b.questions || 0;
                     comparison = aCount - bCount;
                     break;
                 }

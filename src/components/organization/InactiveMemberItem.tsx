@@ -1,6 +1,7 @@
 import { Trash, UserPlus } from '@phosphor-icons/react';
 import React from 'react';
 import { Member } from '../../constants';
+import { getDisplayAvatarUrl } from '../../utils/avatarUtils';
 
 interface InactiveMemberItemProps {
     member: Member;
@@ -17,19 +18,22 @@ export const InactiveMemberItem: React.FC<InactiveMemberItemProps> = ({
     onReinstate,
     onDelete,
 }) => {
+    const teamLabel = member.teamName || '팀 미지정';
+    const partLabel = member.partName || '팀 직속';
+
     return (
         <div className="flex items-center p-3 bg-slate-50 rounded-md justify-between group">
             <div className="flex items-center min-w-0">
                 <img
                     className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                    src={member.avatar}
+                    src={getDisplayAvatarUrl(member.name, member.avatar, member.email)}
                     alt={`${member.name} avatar`}
                 />
                 <div className="ml-4 min-w-0">
                     <p className="font-semibold text-slate-800 text-sm truncate">
                         {member.name} <span className="font-normal text-slate-600">({member.role})</span>
                     </p>
-                    <p className="text-xs text-slate-500 truncate">{`${member.teamName} / ${member.partName}`}</p>
+                    <p className="text-xs text-slate-500 truncate">{`${teamLabel} / ${partLabel}`}</p>
                     <p className="text-xs text-slate-500 flex items-center flex-wrap mt-0.5">
                         {member.hireDate && <span>{member.hireDate}</span>}
                         {duration && <span className="ml-1.5 text-slate-400 font-normal">{duration}</span>}

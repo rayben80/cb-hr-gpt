@@ -1,6 +1,6 @@
-import { X } from '@phosphor-icons/react';
 import React, { memo, useCallback, useState } from 'react';
 import { Team } from '../../constants';
+import { Modal, ModalFooter, ModalHeader } from '../common/Modal';
 import { useBulkSelectionContext } from '../../contexts/BulkSelectionContext';
 
 interface BulkMoveModalProps {
@@ -82,7 +82,7 @@ const ActionButtons = memo(
         disabled: boolean;
         count: number;
     }) => (
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-3">
             <button
                 onClick={onCancel}
                 className="flex-1 px-4 py-3 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors"
@@ -130,10 +130,6 @@ export const BulkMoveModal: React.FC<BulkMoveModalProps> = ({ isOpen, onClose, o
         }
     }, [selectedTeamId, selectedPartId, onMove, onClose]);
 
-    const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) onClose();
-    };
-
     if (!isOpen) return null;
 
     const selectedTeam = teams.find((team) => team.id === selectedTeamId);
@@ -144,42 +140,37 @@ export const BulkMoveModal: React.FC<BulkMoveModalProps> = ({ isOpen, onClose, o
     const parts = selectedTeam ? selectedTeam.parts : [];
 
     return (
-        <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={handleBackdropClick}
+        <Modal
+            open={isOpen}
+            onOpenChange={(open) => !open && onClose()}
+            maxWidth="sm:max-w-md"
+            className="p-0"
+            bodyClassName="p-0"
         >
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md transform transition-all">
-                <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-slate-900">멤버 일괄 이동 ({count}명)</h2>
-                        <button
-                            onClick={onClose}
-                            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
-                            aria-label="닫기"
-                        >
-                            <X className="w-5 h-5" weight="regular" />
-                        </button>
-                    </div>
-
-                    <div className="space-y-4">
-                        <TeamSelector teams={teams} value={selectedTeamId} onChange={handleTeamChange} />
-                        {selectedTeamId && (
-                            <PartSelector
-                                parts={parts}
-                                value={selectedPartId}
-                                onChange={setSelectedPartId}
-                                disabled={!selectedTeamId}
-                            />
-                        )}
-                    </div>
+            <div className="bg-white rounded-xl w-full max-w-md transform transition-all">
+                <ModalHeader>
+                    <h2 className="text-xl font-bold text-slate-900">멤버 일괄 이동 ({count}명)</h2>
+                </ModalHeader>
+                <div className="p-6 space-y-4">
+                    <TeamSelector teams={teams} value={selectedTeamId} onChange={handleTeamChange} />
+                    {selectedTeamId && (
+                        <PartSelector
+                            parts={parts}
+                            value={selectedPartId}
+                            onChange={setSelectedPartId}
+                            disabled={!selectedTeamId}
+                        />
+                    )}
+                </div>
+                <ModalFooter>
                     <ActionButtons
                         onCancel={onClose}
                         onConfirm={handleMove}
                         disabled={!selectedTeamId || !selectedPartId}
                         count={count}
                     />
-                </div>
+                </ModalFooter>
             </div>
-        </div>
+        </Modal>
     );
 };

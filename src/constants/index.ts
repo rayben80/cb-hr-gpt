@@ -2,14 +2,20 @@
 export type {
     EmploymentType,
     Evaluation,
+    EvaluationCycle,
     EvaluationItem,
+    EvaluationScale,
     EvaluationTemplate,
+    EvaluationType,
     Headquarter,
     LeaderHistory,
     Member,
     MemberRole, // New
     MemberStatus, // New
     Part,
+    RaterGroup,
+    RaterRole,
+    ScoringRule,
     Team,
     TemplateVersionHistory,
 } from './types';
@@ -23,6 +29,7 @@ export {
     TEMPLATE_TYPE_OPTIONS,
 } from './presets';
 export { STORAGE_WRITE_DEBOUNCE_MS } from './config';
+export { REPORTING_CATEGORY_OPTIONS } from './reporting';
 
 // Icons
 export { ICONS } from './icons';

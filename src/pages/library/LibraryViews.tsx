@@ -1,12 +1,20 @@
+/* eslint-disable max-lines-per-function */
 import React, { memo } from 'react';
 import { LibraryListMode } from '../../components/library/LibraryListMode';
 import TemplateEditor from '../../features/template/TemplateEditor';
 import { useEvaluationLibrary } from '../../hooks/library/useEvaluationLibrary';
+import { useOrganizationData } from '../../hooks/organization/useOrganizationData';
 import { LibraryModals } from './LibraryModals';
 
 type LibraryLogic = ReturnType<typeof useEvaluationLibrary>;
 
 const LibraryViews: React.FC<LibraryLogic> = memo((props) => {
+    const { teams } = useOrganizationData();
+    const members = teams.flatMap((team: any) => [
+        ...(team.members || []),
+        ...team.parts.flatMap((part: any) => part.members || []),
+    ]);
+
     const {
         view,
 
@@ -50,8 +58,7 @@ const LibraryViews: React.FC<LibraryLogic> = memo((props) => {
         handleRestoreTemplate,
         handleDuplicateTemplate,
         setPreviewTemplate,
-        handleToggleFavorite,
-        toggleSelectItem,
+
         handleSaveTemplate,
         handleCancel,
         handleSelectBlank,
@@ -62,6 +69,14 @@ const LibraryViews: React.FC<LibraryLogic> = memo((props) => {
         setShowStartModal,
         confirmation,
         confirmationActions,
+
+        campaignWizardTemplateId,
+        setCampaignWizardTemplateId,
+
+        createCampaignFromWizard,
+        handleDeleteTemplate,
+        handleLaunch,
+        toggleSelectItem,
     } = props;
 
     return (
@@ -108,7 +123,8 @@ const LibraryViews: React.FC<LibraryLogic> = memo((props) => {
                     handleRestoreTemplate={handleRestoreTemplate}
                     handleDuplicateTemplate={handleDuplicateTemplate}
                     setPreviewTemplate={setPreviewTemplate}
-                    handleToggleFavorite={handleToggleFavorite}
+                    handleDeleteTemplate={handleDeleteTemplate}
+                    handleLaunch={handleLaunch}
                     toggleSelectItem={toggleSelectItem}
                     selectedIds={selectedIds}
                     onCreateTemplate={handleCreateNew}
@@ -122,10 +138,8 @@ const LibraryViews: React.FC<LibraryLogic> = memo((props) => {
                     onSave={handleSaveTemplate}
                     onCancel={handleCancel}
                     categoryOptions={categoryOptions}
-                    onToggleFavorite={() => editingTemplate && handleToggleFavorite(editingTemplate.id)}
                     onArchive={() => editingTemplate && handleArchiveTemplate(editingTemplate.id, editingTemplate.name)}
                     onRestore={() => editingTemplate && handleRestoreTemplate(editingTemplate.id, editingTemplate.name)}
-                    isFavorite={!!editingTemplate?.favorite}
                     isArchived={!!editingTemplate?.archived}
                     existingTemplates={templates}
                 />
@@ -142,6 +156,12 @@ const LibraryViews: React.FC<LibraryLogic> = memo((props) => {
                 setShowStartModal={setShowStartModal}
                 handleSelectBlank={handleSelectBlank}
                 handleSelectPreset={handleSelectPreset}
+                campaignWizardTemplateId={campaignWizardTemplateId}
+                setCampaignWizardTemplateId={setCampaignWizardTemplateId}
+                templates={templates}
+                teams={teams}
+                members={members}
+                createCampaignFromWizard={createCampaignFromWizard}
             />
         </div>
     );

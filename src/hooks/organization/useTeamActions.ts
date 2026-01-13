@@ -1,21 +1,15 @@
 import { useCallback } from 'react';
-import { Headquarter, HQ_UNASSIGNED_ID, initialHeadquarters, Member, Team } from '../../constants';
+import { Headquarter, HQ_UNASSIGNED_ID, initialHeadquarters, Team } from '../../constants';
 import { useError } from '../../contexts/ErrorContext';
 import { DEFAULT_MEMBER_ROLE, normalizeMemberRole } from '../../utils/memberRoleUtils';
 import { AsyncOperationActions } from '../common/useAsyncOperation';
 import { ConfirmationActions } from '../common/useConfirmation';
+import { FirestoreActions } from './firestoreActions';
 
 interface TeamModalState {
     isOpen: boolean;
     mode: 'add' | 'edit';
     data: Team | null;
-}
-
-interface FirestoreActions {
-    addTeam: (team: Omit<Team, 'id'>) => Promise<string>;
-    updateTeam: (id: string, data: Partial<Team>) => Promise<void>;
-    deleteTeam: (id: string) => Promise<void>;
-    updateMember: (id: string, data: Partial<Member>) => Promise<void>;
 }
 
 interface UseTeamActionsProps {
@@ -28,6 +22,48 @@ interface UseTeamActionsProps {
     confirmationActions: ConfirmationActions;
     firestoreActions: FirestoreActions;
 }
+
+// Extracted Helper: Add Team Logic
+const executeAddTeam = async (
+    newData: { name: string; lead: string },
+    headquarters: Headquarter[],
+    firestoreActions: FirestoreActions
+) => {
+    const fallbackHeadquarterId =
+        (headquarters && headquarters[0]?.id) ?? initialHeadquarters[0]?.id ?? HQ_UNASSIGNED_ID;
+
+    await firestoreActions.addTeam({
+        name: newData.name,
+        lead: newData.lead,
+        parts: [],
+        headquarterId: fallbackHeadquarterId,
+    } as any);
+};
+
+// Extracted Helper: Edit Team Logic
+const executeEditTeam = async (
+    data: Team,
+    newData: { name: string; lead: string },
+    teams: Team[],
+    firestoreActions: FirestoreActions
+) => {
+    const currentTeam = teams.find((t) => t.id === data.id);
+    const allMembers = [...(currentTeam?.members || []), ...(currentTeam?.parts.flatMap((p) => p.members) || [])];
+    const resolvedLeadId = newData.lead
+        ? (allMembers.find((m) => m.name === newData.lead)?.id ??
+          (newData.lead === data.lead ? (currentTeam?.leadId ?? null) : null))
+        : null;
+
+    // 1. Update Team Info
+    await firestoreActions.updateTeam(data.id, {
+        name: newData.name,
+        lead: newData.lead,
+        leadId: resolvedLeadId,
+    });
+
+    // 2. Handle Lead Change Side Effects
+    await handleLeadChangeSideEffects(data.lead, newData.lead, allMembers, firestoreActions);
+};
 
 export const useTeamActions = ({
     teams,
@@ -49,83 +85,12 @@ export const useTeamActions = ({
             const { mode, data } = teamModalState;
             await saveOperationActions.execute(
                 async () => {
-                    const fallbackHeadquarterId =
-                        (headquarters && headquarters[0]?.id) ?? initialHeadquarters[0]?.id ?? HQ_UNASSIGNED_ID;
-
                     if (mode === 'add') {
-                        // New Team
-                        // Note: Lead processing for NEW team is tricky if we don't have member list to find the lead's ID.
-                        // However, usually you create a team first, then add members?
-                        // If the UI allows selecting a lead immediately, that person must exist.
-                        // Use `teams` (joined data) to find member by name?
-                        // It's safer to just create the team first.
-                        await firestoreActions.addTeam({
-                            name: newData.name,
-                            lead: newData.lead, // Storing name, but without ID it's incomplete if we rely on leadId
-                            parts: [],
-                            headquarterId: fallbackHeadquarterId,
-                        } as any);
-                        // Note: existing logic didn't seem to set leadId on add?
-                        // Checked executeSaveTeam: it sets lead: newData.lead.
+                        await executeAddTeam(newData, headquarters, firestoreActions);
                     } else {
-                        // Edit Team
                         if (!data) throw new Error('팀 데이터가 없습니다.');
-
-                        // 1. Update Team Info
-                        await firestoreActions.updateTeam(data.id, {
-                            name: newData.name,
-                            lead: newData.lead,
-                        });
-
-                        // 2. Handle Lead Change Side Effects (Update Member Roles)
-                        const oldLead = data.lead;
-                        const newLead = newData.lead;
-
-                        // We iterate all members of this team to find matching names.
-                        // Since `teams` is passed with joined members, we can search `data.members`.
-                        // But `data` from modal might be stale, better look up `teams.find(t => t.id === data.id)`.
-                        const currentTeam = teams.find((t) => t.id === data.id);
-                        const allMembers = [
-                            ...(currentTeam?.members || []),
-                            ...(currentTeam?.parts.flatMap((p) => p.members) || []),
-                        ];
-
-                        if (oldLead && oldLead !== newLead) {
-                            const oldLeadMember = allMembers.find((m) => m.name === oldLead);
-                            if (oldLeadMember) {
-                                let newRole = DEFAULT_MEMBER_ROLE;
-                                const newRoleBeforeLead = undefined;
-
-                                if (oldLeadMember.roleBeforeLead) {
-                                    const restored = normalizeMemberRole(oldLeadMember.roleBeforeLead);
-                                    newRole = restored === '팀장' ? DEFAULT_MEMBER_ROLE : restored;
-                                }
-
-                                await firestoreActions.updateMember(oldLeadMember.id, {
-                                    role: newRole,
-                                    roleBeforeLead: newRoleBeforeLead, // Set to undefined (FieldAttributes in firestore? Sending undefined usually ignores, sending null deletes?)
-                                    // If we want to delete the field, we might need deleteField().
-                                    // For now, sending null or empty might match app logic.
-                                    // I'll send undefined for now, or check if interface allows.
-                                    // Partial<Member> allows optional.
-                                });
-                            }
-                        }
-
-                        if (newLead && newLead !== oldLead) {
-                            const newLeadMember = allMembers.find((m) => m.name === newLead);
-                            if (newLeadMember) {
-                                const expectedRole = '팀장';
-                                if (normalizeMemberRole(newLeadMember.role) !== expectedRole) {
-                                    await firestoreActions.updateMember(newLeadMember.id, {
-                                        role: expectedRole,
-                                        roleBeforeLead: newLeadMember.roleBeforeLead || newLeadMember.role,
-                                    });
-                                }
-                            }
-                        }
+                        await executeEditTeam(data, newData, teams, firestoreActions);
                     }
-
                     return 'success';
                 },
                 {
@@ -190,4 +155,45 @@ export const useTeamActions = ({
     );
 
     return { handleSaveTeam, handleDeleteTeam, handleUpdateTeam };
+};
+
+// Helper function to handle side effects when a team lead changes
+const handleLeadChangeSideEffects = async (
+    oldLead: string | undefined,
+    newLead: string | undefined,
+    allMembers: any[],
+    firestoreActions: FirestoreActions
+) => {
+    // 1. Handle Old Lead (remove role)
+    if (oldLead && oldLead !== newLead) {
+        const oldLeadMember = allMembers.find((m) => m.name === oldLead);
+        if (oldLeadMember) {
+            let newRole = DEFAULT_MEMBER_ROLE;
+            const newRoleBeforeLead = undefined;
+
+            if (oldLeadMember.roleBeforeLead) {
+                const restored = normalizeMemberRole(oldLeadMember.roleBeforeLead);
+                newRole = restored === '팀장' ? DEFAULT_MEMBER_ROLE : restored;
+            }
+
+            await firestoreActions.updateMember(oldLeadMember.id, {
+                role: newRole,
+                roleBeforeLead: newRoleBeforeLead,
+            });
+        }
+    }
+
+    // 2. Handle New Lead (assign role)
+    if (newLead && newLead !== oldLead) {
+        const newLeadMember = allMembers.find((m) => m.name === newLead);
+        if (newLeadMember) {
+            const expectedRole = '팀장';
+            if (normalizeMemberRole(newLeadMember.role) !== expectedRole) {
+                await firestoreActions.updateMember(newLeadMember.id, {
+                    role: expectedRole,
+                    roleBeforeLead: newLeadMember.roleBeforeLead || newLeadMember.role,
+                });
+            }
+        }
+    }
 };

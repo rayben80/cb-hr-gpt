@@ -1,10 +1,7 @@
 import { useCallback } from 'react';
 import { Part, Team } from '../../constants';
 import { useError } from '../../contexts/ErrorContext';
-
-interface FirestoreActions {
-    updateTeam: (id: string, data: Partial<Team>) => Promise<void>;
-}
+import { FirestoreActions } from './firestoreActions';
 
 interface UsePartActionsProps {
     teams: Team[];

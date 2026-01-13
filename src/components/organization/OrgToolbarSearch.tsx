@@ -1,6 +1,9 @@
-import { Calendar, FileArrowDown, FileArrowUp, MagnifyingGlass, UsersThree } from '@phosphor-icons/react';
+import { FileArrowDown, FileArrowUp, UsersThree } from '@phosphor-icons/react';
+import { format, parse } from 'date-fns';
+import { ko } from 'date-fns/locale';
 import { memo, useState } from 'react';
-import { Button, Dropdown, DropdownItem, SearchInput } from '../common';
+import DatePicker from 'react-datepicker';
+import { Button, DropdownItem, ExcelDropdownButton, SearchInput } from '../common';
 import { ExcelImportModal } from './ExcelImportModal';
 
 interface OrgToolbarSearchProps {
@@ -35,62 +38,35 @@ export const OrgToolbarSearch = memo(
         const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
         return (
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                    <SearchInput
-                        placeholder="구성원 이름, 부서로 검색..."
-                        value={searchTerm}
-                        onChange={onSearchChange}
-                        className="w-full pl-12 pr-20 py-3 text-base rounded-xl border-input focus:border-primary focus:ring-primary transition-all shadow-sm"
-                        aria-label="구성원 검색"
-                    />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        <MagnifyingGlass className="w-5 h-5" weight="bold" />
-                    </div>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <Button
-                            variant="default"
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-4 py-1.5 text-sm font-medium shadow-sm transition-all"
-                        >
-                            검색
-                        </Button>
-                    </div>
-                </div>
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
+                <SearchInput
+                    placeholder="구성원 이름, 부서로 검색..."
+                    value={searchTerm}
+                    onChange={onSearchChange}
+                    className="w-full sm:flex-1"
+                    aria-label="구성원 검색"
+                />
 
-                <div className="flex items-center gap-3">
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                            <Calendar
-                                className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors"
-                                weight="regular"
-                            />
-                        </div>
-                        <input
-                            type="date"
-                            value={baseDate}
-                            onChange={(e) => onBaseDateChange(e.target.value)}
-                            className="pl-10 pr-4 py-3 bg-background border border-input rounded-xl text-foreground font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm hover:border-primary/50 cursor-pointer text-sm w-[160px]"
-                            aria-label="기준일 선택"
-                            title="기준일 선택"
+                <div className="flex items-end gap-3">
+                    <div className="flex items-center h-12 rounded-xl bg-secondary/50 px-3 shadow-sm ring-1 ring-border/30">
+                        <span className="text-sm font-semibold text-slate-500 whitespace-nowrap">기준일</span>
+                        <span className="mx-2 h-4 w-px bg-border/60" />
+                        <DatePicker
+                            selected={baseDate ? parse(baseDate, 'yyyy-MM-dd', new Date()) : null}
+                            onChange={(date: Date | null) => onBaseDateChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                            dateFormat="yyyy-MM-dd"
+                            locale={ko}
+                            showYearDropdown
+                            showMonthDropdown
+                            dropdownMode="select"
+                            placeholderText="YYYY-MM-DD"
+                            className="w-[140px] bg-transparent border-0 p-0 text-base text-slate-700 focus:outline-none focus:ring-0"
+                            wrapperClassName="w-auto"
                         />
-                        <span className="absolute -top-2 left-3 px-1 bg-background text-[10px] font-bold text-muted-foreground group-hover:text-primary transition-colors">
-                            기준일
-                        </span>
                     </div>
 
                     {/* Excel Actions */}
-                    <Dropdown
-                        trigger={
-                            <Button
-                                variant="outline"
-                                className="gap-2 px-3 py-3 rounded-xl shadow-sm hover:shadow-md transition-all bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800"
-                                aria-label="엑셀 관리"
-                            >
-                                <FileArrowUp className="w-5 h-5" weight="fill" />
-                                <span className="hidden sm:inline font-medium">엑셀 관리</span>
-                            </Button>
-                        }
-                    >
+                    <ExcelDropdownButton>
                         <DropdownItem onClick={() => setIsExcelModalOpen(true)}>
                             <FileArrowUp className="w-4 h-4 mr-2" />
                             조직원 일괄 등록 (Import)
@@ -99,7 +75,7 @@ export const OrgToolbarSearch = memo(
                             <FileArrowDown className="w-4 h-4 mr-2" />
                             조직도 내보내기 (Export)
                         </DropdownItem>
-                    </Dropdown>
+                    </ExcelDropdownButton>
 
                     {/* Modal */}
                     <ExcelImportModal

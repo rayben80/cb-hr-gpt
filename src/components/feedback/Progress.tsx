@@ -50,6 +50,8 @@ const ProgressBar = React.memo<ProgressBarProps>(
             }
         };
 
+        const valueNow = Math.round(clampedProgress);
+
         return (
             <div className="w-full">
                 {(label || showPercentage) && (
@@ -74,12 +76,10 @@ const ProgressBar = React.memo<ProgressBarProps>(
                         ${animated ? 'animate-pulse' : ''}
                         w-[var(--progress-width)]
                     `}
-                        style={{ '--progress-width': `${clampedProgress}%` } as React.CSSProperties}
+                        style={{ width: `${clampedProgress}%` }}
                         role="progressbar"
-                        aria-valuenow={Math.round(clampedProgress)}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-label={label || `진행률 ${Math.round(clampedProgress)}%`}
+                        aria-valuenow={valueNow}
+                        aria-label={label || `진행률 ${valueNow}%`}
                     />
                 </div>
             </div>
@@ -105,6 +105,7 @@ const CircularProgress = React.memo<CircularProgressProps>(
         const circumference = radius * 2 * Math.PI;
         const strokeDasharray = circumference;
         const strokeDashoffset = circumference - (clampedProgress / 100) * circumference;
+        const valueNow = Math.round(clampedProgress);
 
         const getColorClasses = () => {
             switch (color) {
@@ -132,9 +133,7 @@ const CircularProgress = React.memo<CircularProgressProps>(
                     height={size}
                     className="transform -rotate-90"
                     role="progressbar"
-                    aria-valuenow={Math.round(clampedProgress)}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
+                    aria-valuenow={valueNow}
                 >
                     {/* 배경 원 */}
                     <circle fill="none" className="text-slate-200" />

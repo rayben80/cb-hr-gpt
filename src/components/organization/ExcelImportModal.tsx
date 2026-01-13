@@ -49,7 +49,11 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                             <FileArrowUp className="w-5 h-5 text-primary" weight="bold" />
                             엑셀 일괄 등록 가이드
                         </h3>
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-500 transition-colors">
+                        <button
+                            onClick={onClose}
+                            className="text-gray-400 hover:text-gray-500 transition-colors"
+                            aria-label="닫기"
+                        >
                             <X className="w-5 h-5" weight="bold" />
                         </button>
                     </div>
@@ -72,6 +76,10 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                                         <span className="font-medium text-gray-900">필수 항목</span>: 팀, 이름, 이메일
                                     </li>
                                     <li>
+                                        <span className="font-medium text-gray-900">이메일</span>: 고유값이며, 기존
+                                        이메일은 수정으로 처리됩니다. (파일 내 중복 불가)
+                                    </li>
+                                    <li>
                                         <span className="font-medium text-gray-900">고용형태</span>: '정규직' 또는
                                         '인턴' (미입력 시 정규직)
                                     </li>
@@ -80,8 +88,8 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                                         중 선택
                                     </li>
                                     <li>
-                                        <span className="font-medium text-gray-900">직책</span>: 팀장/파트장/팀원 중 하나
-                                        (팀장 입력 시 리더로 자동 지정)
+                                        <span className="font-medium text-gray-900">직책</span>: 팀장/파트장/팀원 중
+                                        하나 (팀장 입력 시 리더로 자동 지정, 팀장은 파트를 비워주세요)
                                     </li>
                                 </ul>
                             </div>
@@ -119,6 +127,8 @@ export const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
                         onChange={handleFileChange}
                         accept=".xlsx, .xls"
                         className="hidden"
+                        title="엑셀 파일 업로드"
+                        aria-label="엑셀 파일 업로드"
                     />
                 </div>
             </div>
