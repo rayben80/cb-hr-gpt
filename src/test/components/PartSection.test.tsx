@@ -217,45 +217,7 @@ describe('PartSection Component', () => {
         expect(screen.getByText(/이 파트에 멤버가 없습니다/)).toBeInTheDocument();
     });
 
-    it('드래그 오버 시 적절한 시각적 피드백을 제공해야 한다', () => {
-        const { container } = render(<PartSection {...defaultProps} />);
-
-        const dropZone = container.querySelector('.pl-4');
-        expect(dropZone).not.toBeNull();
-
-        // 드래그 엔터 시뮬레이션
-        fireEvent.dragEnter(dropZone!, {
-            dataTransfer: {
-                types: ['text/plain'],
-            },
-        });
-
-        // 드래그 오버 가이드 메시지 확인
-        expect(screen.getByText('여기에 드롭하세요')).toBeInTheDocument();
-    });
-
-    it('드롭 시 onDropMemberInPart가 호출되어야 한다', () => {
-        const { container } = render(<PartSection {...defaultProps} />);
-
-        const dropZone = container.querySelector('.pl-4');
-        expect(dropZone).not.toBeNull();
-
-        // 드래그 엔터
-        fireEvent.dragEnter(dropZone!, {
-            dataTransfer: {
-                types: ['text/plain'],
-            },
-        });
-
-        // 드롭 시뮬레이션
-        fireEvent.drop(dropZone!, {
-            dataTransfer: {
-                getData: () => 'member3',
-            },
-        });
-
-        expect(defaultProps.onDropMemberInPart).toHaveBeenCalledWith('member3', 'team1', 'part1');
-    });
+    // Native D&D tests removed. @dnd-kit handles droppable logic externally.
 
     it('멤버 편집 시 onEditMember가 호출되어야 한다', () => {
         render(<PartSection {...defaultProps} />);
