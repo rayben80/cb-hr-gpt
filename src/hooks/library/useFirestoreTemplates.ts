@@ -5,11 +5,17 @@ import { useError } from '../../contexts/ErrorContext';
 import { db } from '../../firebase';
 
 export const useFirestoreTemplates = () => {
+    const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
     const [templates, setTemplates] = useState<EvaluationTemplate[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!isE2EMock);
     const { showError } = useError();
 
     useEffect(() => {
+        if (isE2EMock) {
+            setLoading(false);
+            return;
+        }
+
         const q = query(collection(db, 'templates'), orderBy('lastUpdated', 'desc'));
 
         const unsubscribe = onSnapshot(
@@ -33,7 +39,7 @@ export const useFirestoreTemplates = () => {
         );
 
         return () => unsubscribe();
-    }, [showError]);
+    }, [showError, isE2EMock]);
 
     const addTemplate = async (template: Omit<EvaluationTemplate, 'id'>): Promise<string> => {
         try {
