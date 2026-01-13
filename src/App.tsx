@@ -84,7 +84,7 @@ const AppContent = () => {
         }
     }, [activePage]);
 
-    if (loading) {
+    if (loading && !isE2EBypass) {
         return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     }
 

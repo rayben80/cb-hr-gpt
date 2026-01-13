@@ -102,7 +102,9 @@ export const useMonitoringAdjustments = ({
     const { upsertEvaluationAdjustment } = useFirestoreEvaluation();
     const { showSuccess } = useError();
     const useMockData =
-        import.meta.env.VITE_USE_MOCK_MONITORING === '1' || import.meta.env.VITE_USE_MOCK_MONITORING === 'true';
+        import.meta.env.VITE_USE_MOCK_MONITORING === '1' ||
+        import.meta.env.VITE_USE_MOCK_MONITORING === 'true' ||
+        import.meta.env.VITE_E2E_MOCK_DATA === 'true';
     const [adjustmentTarget, setAdjustmentTarget] = useState<EvaluateeSummary | null>(null);
     const [adjustmentRole, setAdjustmentRole] = useState<'manager' | 'hq' | null>(null);
     const [adjustmentValue, setAdjustmentValue] = useState(0);

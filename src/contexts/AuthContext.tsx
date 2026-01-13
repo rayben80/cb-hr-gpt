@@ -5,7 +5,8 @@ import { auth, db, googleProvider } from '../firebase';
 
 const ALLOWED_EMAIL_DOMAIN = '@forcs.com';
 const SUPER_ADMIN_EMAIL = 'rayben@forcs.com';
-const rawAllowedHqIds = typeof import.meta.env?.VITE_ALLOWED_HQ_IDS === 'string' ? import.meta.env.VITE_ALLOWED_HQ_IDS : '';
+const rawAllowedHqIds =
+    typeof import.meta.env?.VITE_ALLOWED_HQ_IDS === 'string' ? import.meta.env.VITE_ALLOWED_HQ_IDS : '';
 const ALLOWED_HQ_IDS = (rawAllowedHqIds || 'hq-cloud')
     .split(',')
     .map((id) => id.trim())
@@ -139,8 +140,9 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const isE2EBypass = import.meta.env.VITE_E2E_BYPASS_AUTH === 'true';
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!isE2EBypass);
     const [accessStatus, setAccessStatus] = useState<AccessStatus>('pending');
     const [accessRequest, setAccessRequest] = useState<AccessRequest | null>(null);
 
@@ -160,6 +162,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
+        if (isE2EBypass) return;
+
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setLoading(true);
             if (!user) {
@@ -181,7 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return unsubscribe;
-    }, []);
+    }, [isE2EBypass]);
 
     const signInWithGoogle = async () => {
         try {
@@ -230,5 +234,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshAccessStatus,
     };
 
-    return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+    return <AuthContext.Provider value={value}>{(isE2EBypass || !loading) && children}</AuthContext.Provider>;
 };

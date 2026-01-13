@@ -87,17 +87,20 @@ const useCampaignHandlers = ({
         }
     }, []);
 
-    const fetchCampaignAssignments = useCallback(async (campaignId: string) => {
-        setIsLoading(true);
-        try {
-            return await fetchCampaignAssignmentsRequest(campaignId);
-        } catch (error) {
-            console.error('Failed to fetch campaign assignments:', error);
-            return [];
-        } finally {
-            setIsLoading(false);
-        }
-    }, [setIsLoading]);
+    const fetchCampaignAssignments = useCallback(
+        async (campaignId: string) => {
+            setIsLoading(true);
+            try {
+                return await fetchCampaignAssignmentsRequest(campaignId);
+            } catch (error) {
+                console.error('Failed to fetch campaign assignments:', error);
+                return [];
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [setIsLoading]
+    );
 
     const fetchCampaignById = useCallback(async (campaignId: string) => {
         try {
@@ -126,18 +129,21 @@ const useAssignmentHandlers = ({
     showSuccess: (title: string, message: string) => void;
     showError: (title: string, message: string) => void;
 }) => {
-    const fetchMyAssignments = useCallback(async (userId: string) => {
-        if (!userId) return [];
-        setIsLoading(true);
-        try {
-            return await fetchMyAssignmentsRequest(userId);
-        } catch (error) {
-            console.error('Failed to fetch assignments:', error);
-            return [];
-        } finally {
-            setIsLoading(false);
-        }
-    }, [setIsLoading]);
+    const fetchMyAssignments = useCallback(
+        async (userId: string) => {
+            if (!userId) return [];
+            setIsLoading(true);
+            try {
+                return await fetchMyAssignmentsRequest(userId);
+            } catch (error) {
+                console.error('Failed to fetch assignments:', error);
+                return [];
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [setIsLoading]
+    );
 
     const fetchAssignmentById = useCallback(async (assignmentId: string) => {
         try {
@@ -200,17 +206,20 @@ const useResultHandlers = ({
         [setIsSubmitting, showSuccess, showError]
     );
 
-    const fetchEvaluationResult = useCallback(async (assignmentId: string) => {
-        setIsLoading(true);
-        try {
-            return await fetchEvaluationResultRequest(assignmentId);
-        } catch (error) {
-            console.error('Failed to fetch result:', error);
-            return null;
-        } finally {
-            setIsLoading(false);
-        }
-    }, [setIsLoading]);
+    const fetchEvaluationResult = useCallback(
+        async (assignmentId: string) => {
+            setIsLoading(true);
+            try {
+                return await fetchEvaluationResultRequest(assignmentId);
+            } catch (error) {
+                console.error('Failed to fetch result:', error);
+                return null;
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [setIsLoading]
+    );
 
     const fetchResultsByCampaignAndEvaluatee = useCallback(async (campaignId: string, evaluateeId: string) => {
         try {
@@ -287,11 +296,40 @@ export function useFirestoreEvaluation() {
     const { showSuccess, showError } = useError();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
 
     const campaignHandlers = useCampaignHandlers({ setIsSubmitting, setIsLoading, showSuccess, showError });
     const assignmentHandlers = useAssignmentHandlers({ setIsLoading, showSuccess, showError });
     const resultHandlers = useResultHandlers({ setIsSubmitting, setIsLoading, showSuccess, showError });
     const adjustmentHandlers = useAdjustmentHandlers({ showSuccess, showError });
+
+    // E2E Mock Bypasses
+    if (isE2EMock) {
+        return {
+            ...campaignHandlers,
+            ...assignmentHandlers,
+            ...resultHandlers,
+            ...adjustmentHandlers,
+            // Override with mocks where necessary to prevent Firestore calls
+            fetchMyAssignments: async () => [],
+            fetchAssignmentById: async () => null,
+            submitEvaluation: async () => 'mock-result-id',
+            updateAssignmentStatus: async () => true,
+            fetchAllCampaigns: async () => [],
+            fetchCampaignById: async () => null,
+            fetchCampaignStatistics: async () => ({ total: 0, submitted: 0, progress: 0 }),
+            fetchCampaignAssignments: async () => [],
+            createCampaign: async () => 'mock-campaign-id',
+            fetchEvaluationResult: async () => null,
+            fetchResultsByCampaignAndEvaluatee: async () => [],
+            fetchResultsByCampaign: async () => [],
+            fetchAdjustmentsByCampaign: async () => [],
+            fetchAdjustmentByCampaignAndEvaluatee: async () => null,
+            upsertEvaluationAdjustment: async () => true,
+            isSubmitting: false,
+            isLoading: false,
+        };
+    }
 
     return {
         ...campaignHandlers,

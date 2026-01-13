@@ -1,8 +1,8 @@
 import { Button, ErrorBoundary, PageHeader } from '@/components/common';
 import { ChartSection, InsightSection, StatCard } from '@/components/dashboard';
-import { currentUser, REPORTING_CATEGORY_OPTIONS } from '@/constants';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { currentUser, REPORTING_CATEGORY_OPTIONS } from '@/constants';
 import { useDashboardStats } from '@/hooks';
 import { exportDashboardToPDF } from '@/services/pdfExportService';
 import { DownloadSimple } from '@phosphor-icons/react';
@@ -19,6 +19,10 @@ const Dashboard: React.FC = memo(() => {
     const [isLoading, setIsLoading] = useState(true);
 
     React.useEffect(() => {
+        if (import.meta.env.VITE_E2E_MOCK_DATA === 'true') {
+            setIsLoading(false);
+            return;
+        }
         const timer = setTimeout(() => {
             setIsLoading(false);
         }, 1000);

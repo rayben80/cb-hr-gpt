@@ -7,6 +7,7 @@ import {
     DragStartEvent,
     pointerWithin,
 } from '@dnd-kit/core';
+import { useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Headquarter } from '../../constants';
 import { MemberCard } from './Member';
@@ -31,30 +32,14 @@ interface OrganizationMainContentProps {
 export const OrganizationMainContent = (props: OrganizationMainContentProps) => {
     const { isLoading, error, teams, dndContextProps, dragActiveId, ...contentProps } = props;
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-        );
-    }
+    const activeMember = useMemo(() => {
+        if (!dragActiveId) return null;
+        return teams
+            .flatMap((t: any) => [...(t.members || []), ...t.parts.flatMap((p: any) => p.members)])
+            .find((m: any) => m.id === dragActiveId);
+    }, [dragActiveId, teams]);
 
-    if (error) {
-        return (
-            <div className="flex flex-col items-center justify-center h-64 text-destructive space-y-2">
-                <span className="text-lg font-medium">데이터를 불러오는데 실패했습니다</span>
-                <span className="text-sm text-muted-foreground">{error}</span>
-            </div>
-        );
-    }
-
-    const activeMember = dragActiveId
-        ? teams
-              .flatMap((t: any) => [...(t.members || []), ...t.parts.flatMap((p: any) => p.members)])
-              .find((m: any) => m.id === dragActiveId)
-        : null;
-
-    const collisionDetection: CollisionDetection = (args) => {
+    const collisionDetection: CollisionDetection = useCallback((args) => {
         const activeType = args.active.data.current?.type;
         if (activeType !== 'member') {
             return closestCenter(args);
@@ -98,7 +83,38 @@ export const OrganizationMainContent = (props: OrganizationMainContentProps) => 
             ...args,
             droppableContainers: containerDroppables.length ? containerDroppables : args.droppableContainers,
         });
-    };
+    }, []);
+
+    const overlayContent = useMemo(() => {
+        if (!activeMember) return null;
+        return (
+            <MemberCard
+                member={activeMember}
+                onEdit={() => {}}
+                onDelete={() => {}}
+                onMove={() => {}}
+                baseDate={contentProps.baseDate}
+                isOverlay={true}
+            />
+        );
+    }, [activeMember, contentProps.baseDate]);
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 text-destructive space-y-2">
+                <span className="text-lg font-medium">데이터를 불러오는데 실패했습니다</span>
+                <span className="text-sm text-muted-foreground">{error}</span>
+            </div>
+        );
+    }
 
     return (
         <DndContext
@@ -116,21 +132,7 @@ export const OrganizationMainContent = (props: OrganizationMainContentProps) => 
                 />
             </div>
 
-            {createPortal(
-                <DragOverlay dropAnimation={null}>
-                    {activeMember ? (
-                        <MemberCard
-                            member={activeMember}
-                            onEdit={() => {}}
-                            onDelete={() => {}}
-                            onMove={() => {}}
-                            baseDate={contentProps.baseDate}
-                            isOverlay={true}
-                        />
-                    ) : null}
-                </DragOverlay>,
-                document.body
-            )}
+            {createPortal(<DragOverlay dropAnimation={null}>{overlayContent}</DragOverlay>, document.body)}
         </DndContext>
     );
 };

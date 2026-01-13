@@ -21,7 +21,9 @@ interface UseCampaignMonitoringDataParams {
 export const useCampaignMonitoringData = ({ evaluation, teams }: UseCampaignMonitoringDataParams) => {
     const { fetchCampaignAssignments, fetchResultsByCampaign, fetchAdjustmentsByCampaign } = useFirestoreEvaluation();
     const useMockData =
-        import.meta.env.VITE_USE_MOCK_MONITORING === '1' || import.meta.env.VITE_USE_MOCK_MONITORING === 'true';
+        import.meta.env.VITE_USE_MOCK_MONITORING === '1' ||
+        import.meta.env.VITE_USE_MOCK_MONITORING === 'true' ||
+        import.meta.env.VITE_E2E_MOCK_DATA === 'true';
     const [assignments, setAssignments] = useState<any[]>([]);
     const [results, setResults] = useState<any[]>([]);
     const [adjustments, setAdjustments] = useState<EvaluationAdjustment[]>([]);

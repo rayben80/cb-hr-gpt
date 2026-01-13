@@ -20,11 +20,17 @@ export interface AccessRequest {
 
 export const useAccessRequests = () => {
     const { canApproveAccess } = useRole();
+    const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
     const [requests, setRequests] = useState<AccessRequest[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!isE2EMock);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (isE2EMock) {
+            setLoading(false);
+            setRequests([]);
+            return;
+        }
         if (!canApproveAccess) return;
         const q = query(collection(db, 'access_requests'), orderBy('createdAt', 'desc'));
         const unsubscribe = onSnapshot(
@@ -56,8 +62,7 @@ export const useAccessRequests = () => {
         );
 
         return () => unsubscribe();
-    }, [canApproveAccess]);
+    }, [canApproveAccess, isE2EMock]);
 
     return { requests, loading, error };
 };
-

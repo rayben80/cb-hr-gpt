@@ -29,7 +29,9 @@ export const useEvaluationDataSource = (role: string | undefined): UseEvaluation
     const [isLoading, setIsLoading] = useState(true);
     const { fetchAllCampaigns, fetchMyAssignments, fetchCampaignStatistics } = useFirestoreEvaluation();
     const useMockData =
-        import.meta.env.VITE_USE_MOCK_MONITORING === '1' || import.meta.env.VITE_USE_MOCK_MONITORING === 'true';
+        import.meta.env.VITE_USE_MOCK_MONITORING === '1' ||
+        import.meta.env.VITE_USE_MOCK_MONITORING === 'true' ||
+        import.meta.env.VITE_E2E_MOCK_DATA === 'true';
 
     const fetchAndAdaptData = useCallback(async () => {
         setIsLoading(true);

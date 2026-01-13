@@ -39,8 +39,14 @@ export function useFirestoreCategories() {
 
     // 실시간 구독 설정
     useEffect(() => {
-        setLoading(true);
+        const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
+        if (isE2EMock) {
+            setCategories(DEFAULT_CATEGORIES);
+            setLoading(false);
+            return;
+        }
 
+        setLoading(true);
         const unsubscribe = onSnapshot(
             categoriesDocRef,
             async (docSnap) => {
