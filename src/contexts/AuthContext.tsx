@@ -146,20 +146,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [accessStatus, setAccessStatus] = useState<AccessStatus>('pending');
     const [accessRequest, setAccessRequest] = useState<AccessRequest | null>(null);
 
-    const resolveAccessState = async (user: User) => {
-        if (!hasAllowedEmailDomain(user.email)) {
-            await signOut(auth);
-            setCurrentUser(null);
-            setAccessStatus('blocked');
-            setAccessRequest(null);
-            return;
-        }
+    const resolveAccessState = useCallback(
+        async (user: User) => {
+            if (isE2EBypass) {
+                setAccessRequest({
+                    uid: user.uid,
+                    email: user.email || '',
+                    displayName: user.displayName || '',
+                    status: 'approved',
+                    role: 'SUPER_ADMIN',
+                    hqId: 'hq-cloud',
+                });
+                setAccessStatus('approved');
+                setCurrentUser(user);
+                return;
+            }
 
-        const request = await ensureAccessRequest(user);
-        setAccessRequest(request);
-        setAccessStatus(resolveAccessStatusFromRequest(request));
-        setCurrentUser(user);
-    };
+            if (!hasAllowedEmailDomain(user.email)) {
+                await signOut(auth);
+                setCurrentUser(null);
+                setAccessStatus('blocked');
+                setAccessRequest(null);
+                return;
+            }
+
+            const request = await ensureAccessRequest(user);
+            setAccessRequest(request);
+            setAccessStatus(resolveAccessStatusFromRequest(request));
+            setCurrentUser(user);
+        },
+        [isE2EBypass]
+    );
 
     useEffect(() => {
         if (isE2EBypass) return;
@@ -185,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return unsubscribe;
-    }, [isE2EBypass]);
+    }, [isE2EBypass, resolveAccessState]);
 
     const signInWithGoogle = async () => {
         try {

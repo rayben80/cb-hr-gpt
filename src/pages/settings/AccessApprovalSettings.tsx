@@ -12,12 +12,16 @@ import { AccessRequestList } from './components/AccessRequestList';
 
 type UserRole = 'SUPER_ADMIN' | 'HQ_LEADER' | 'TEAM_LEADER' | 'USER';
 
-const resolveTeamId = (member: ReturnType<typeof useFirestoreMembers>['members'][number] | null, approverTeamId: string | null) =>
-    member?.teamId ?? approverTeamId ?? null;
+const resolveTeamId = (
+    member: ReturnType<typeof useFirestoreMembers>['members'][number] | null,
+    approverTeamId: string | null
+) => member?.teamId ?? approverTeamId ?? null;
 
-const resolvePartId = (member: ReturnType<typeof useFirestoreMembers>['members'][number] | null) => member?.partId ?? null;
+const resolvePartId = (member: ReturnType<typeof useFirestoreMembers>['members'][number] | null) =>
+    member?.partId ?? null;
 
-const resolveHqId = (team: ReturnType<typeof useFirestoreTeams>['teams'][number] | null) => team?.headquarterId ?? 'hq-cloud';
+const resolveHqId = (team: ReturnType<typeof useFirestoreTeams>['teams'][number] | null) =>
+    team?.headquarterId ?? 'hq-cloud';
 
 const validateApproval = ({
     role,
@@ -81,6 +85,7 @@ export const AccessApprovalSettings: React.FC = () => {
     const { members } = useFirestoreMembers();
     const { teams } = useFirestoreTeams();
     const { requests, loading, error: fetchError } = useAccessRequests();
+    const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
 
     const [actionError, setActionError] = useState<string | null>(null);
     const error = fetchError || actionError;
@@ -140,6 +145,11 @@ export const AccessApprovalSettings: React.FC = () => {
             return;
         }
 
+        if (isE2EMock) {
+            // In E2E mode, we just return success
+            return;
+        }
+
         setBusy((prev) => ({ ...prev, [request.uid]: 'approve' }));
         try {
             const requestRef = doc(db, 'access_requests', request.uid);
@@ -158,6 +168,10 @@ export const AccessApprovalSettings: React.FC = () => {
 
     const handleReject = async (request: AccessRequest) => {
         setError(null);
+        if (isE2EMock) {
+            // In E2E mode, we just return success
+            return;
+        }
         setBusy((prev) => ({ ...prev, [request.uid]: 'reject' }));
         try {
             const requestRef = doc(db, 'access_requests', request.uid);
@@ -225,4 +239,3 @@ export const AccessApprovalSettings: React.FC = () => {
         </div>
     );
 };
-

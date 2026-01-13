@@ -92,6 +92,13 @@ export function useFirestoreCategories() {
 
             const updatedCategories = [...categories, newCategory];
 
+            const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
+            if (isE2EMock) {
+                setCategories(updatedCategories);
+                setError(null);
+                return { ok: true };
+            }
+
             try {
                 await setDoc(categoriesDocRef, {
                     items: updatedCategories,
@@ -113,6 +120,13 @@ export function useFirestoreCategories() {
     const updateCategory = useCallback(
         async (id: string, newName: string): Promise<CategoryActionResult> => {
             const updatedCategories = categories.map((cat) => (cat.id === id ? { ...cat, name: newName } : cat));
+
+            const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
+            if (isE2EMock) {
+                setCategories(updatedCategories);
+                setError(null);
+                return { ok: true };
+            }
 
             try {
                 await setDoc(categoriesDocRef, {
@@ -144,6 +158,13 @@ export function useFirestoreCategories() {
             const updatedCategories = categories
                 .filter((cat) => cat.id !== id)
                 .map((cat, index) => ({ ...cat, order: index }));
+
+            const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
+            if (isE2EMock) {
+                setCategories(updatedCategories);
+                setError(null);
+                return { ok: true };
+            }
 
             try {
                 await setDoc(categoriesDocRef, {

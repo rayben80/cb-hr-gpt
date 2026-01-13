@@ -1,15 +1,24 @@
-import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where, writeBatch } from 'firebase/firestore';
-import { db } from '../../firebase';
 import {
-    EvaluationAdjustment,
-    EvaluationAdjustmentEntry,
-    EvaluationResult,
-} from './firestoreEvaluationTypes';
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    serverTimestamp,
+    setDoc,
+    where,
+    writeBatch,
+} from 'firebase/firestore';
+import { db } from '../../firebase';
+import { EvaluationAdjustment, EvaluationAdjustmentEntry, EvaluationResult } from './firestoreEvaluationTypes';
+
+const isE2EMock = import.meta.env.VITE_E2E_MOCK_DATA === 'true';
 
 export const submitEvaluationRequest = async (
     assignmentId: string,
     resultData: Omit<EvaluationResult, 'id' | 'submittedAt'>
 ) => {
+    if (isE2EMock) return 'mock-result-id';
     const batch = writeBatch(db);
 
     const existingQuery = query(collection(db, 'evaluation_results'), where('assignmentId', '==', assignmentId));
@@ -40,6 +49,7 @@ export const submitEvaluationRequest = async (
 };
 
 export const fetchEvaluationResultRequest = async (assignmentId: string) => {
+    if (isE2EMock) return null;
     const q = query(collection(db, 'evaluation_results'), where('assignmentId', '==', assignmentId));
     const snapshot = await getDocs(q);
     if (snapshot.empty) return null;
@@ -47,6 +57,7 @@ export const fetchEvaluationResultRequest = async (assignmentId: string) => {
 };
 
 export const fetchResultsByCampaignAndEvaluateeRequest = async (campaignId: string, evaluateeId: string) => {
+    if (isE2EMock) return [];
     try {
         const q = query(
             collection(db, 'evaluation_results'),
@@ -66,18 +77,21 @@ export const fetchResultsByCampaignAndEvaluateeRequest = async (campaignId: stri
 };
 
 export const fetchResultsByCampaignRequest = async (campaignId: string) => {
+    if (isE2EMock) return [];
     const q = query(collection(db, 'evaluation_results'), where('campaignId', '==', campaignId));
     const snapshot = await getDocs(q);
     return snapshot.docs.map((docSnap) => docSnap.data() as EvaluationResult);
 };
 
 export const fetchAdjustmentsByCampaignRequest = async (campaignId: string) => {
+    if (isE2EMock) return [];
     const q = query(collection(db, 'evaluation_adjustments'), where('campaignId', '==', campaignId));
     const snapshot = await getDocs(q);
     return snapshot.docs.map((docSnap) => docSnap.data() as EvaluationAdjustment);
 };
 
 export const fetchAdjustmentByCampaignAndEvaluateeRequest = async (campaignId: string, evaluateeId: string) => {
+    if (isE2EMock) return null;
     const docId = `${campaignId}_${evaluateeId}`;
     const ref = doc(db, 'evaluation_adjustments', docId);
     const snapshot = await getDoc(ref);
@@ -93,6 +107,7 @@ export const upsertEvaluationAdjustmentRequest = async (
         hqAdjustment?: EvaluationAdjustmentEntry;
     }
 ) => {
+    if (isE2EMock) return true;
     const docId = `${campaignId}_${evaluateeId}`;
     const ref = doc(db, 'evaluation_adjustments', docId);
     const snapshot = await getDoc(ref);

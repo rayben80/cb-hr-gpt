@@ -117,6 +117,11 @@ export const useFirestoreMembers = () => {
     }, [isE2EMock]);
 
     const addMember = async (memberData: Omit<Member, 'id'>) => {
+        if (isE2EMock) {
+            const newMember = { ...memberData, id: `mock-member-${Date.now()}` } as Member;
+            setMembers((prev) => [...prev, newMember]);
+            return newMember.id;
+        }
         try {
             const docRef = await addDoc(collection(db, 'members'), {
                 ...memberData,
@@ -151,6 +156,10 @@ export const useFirestoreMembers = () => {
     };
 
     const deleteMember = async (id: string) => {
+        if (isE2EMock) {
+            setMembers((prev) => prev.filter((m) => m.id !== id));
+            return;
+        }
         try {
             await deleteDoc(doc(db, 'members', id));
         } catch (error) {

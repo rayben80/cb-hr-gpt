@@ -42,6 +42,9 @@ export const useFirestoreTemplates = () => {
     }, [showError, isE2EMock]);
 
     const addTemplate = async (template: Omit<EvaluationTemplate, 'id'>): Promise<string> => {
+        if (isE2EMock) {
+            return `mock-template-${Date.now()}`;
+        }
         try {
             const docRef = await addDoc(collection(db, 'templates'), template);
             return docRef.id;
@@ -52,6 +55,10 @@ export const useFirestoreTemplates = () => {
     };
 
     const updateTemplate = async (id: string, data: Partial<EvaluationTemplate>): Promise<void> => {
+        if (isE2EMock) {
+            setTemplates((prev) => prev.map((t) => (t.id === id ? { ...t, ...data } : t)));
+            return;
+        }
         try {
             const docRef = doc(db, 'templates', id);
             await updateDoc(docRef, data);
@@ -62,6 +69,10 @@ export const useFirestoreTemplates = () => {
     };
 
     const deleteTemplate = async (id: string): Promise<void> => {
+        if (isE2EMock) {
+            setTemplates((prev) => prev.filter((t) => t.id !== id));
+            return;
+        }
         try {
             const docRef = doc(db, 'templates', id);
             await deleteDoc(docRef);

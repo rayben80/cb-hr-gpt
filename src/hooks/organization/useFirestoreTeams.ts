@@ -59,6 +59,11 @@ export const useFirestoreTeams = () => {
     }, [isE2EMock]);
 
     const addTeam = async (teamData: Omit<Team, 'id'>) => {
+        if (isE2EMock) {
+            const newTeam = { ...teamData, id: `mock-team-${Date.now()}` } as Team;
+            setTeams((prev) => [...prev, newTeam]);
+            return newTeam.id;
+        }
         try {
             const docRef = await addDoc(collection(db, 'teams'), {
                 ...teamData,
@@ -72,6 +77,10 @@ export const useFirestoreTeams = () => {
     };
 
     const updateTeam = async (id: string, teamData: Partial<Team>) => {
+        if (isE2EMock) {
+            setTeams((prev) => prev.map((t) => (t.id === id ? { ...t, ...teamData } : t)));
+            return;
+        }
         try {
             const teamRef = doc(db, 'teams', id);
             const payload = stripUndefined({ ...teamData });
@@ -83,6 +92,10 @@ export const useFirestoreTeams = () => {
     };
 
     const deleteTeam = async (id: string) => {
+        if (isE2EMock) {
+            setTeams((prev) => prev.filter((t) => t.id !== id));
+            return;
+        }
         try {
             await deleteDoc(doc(db, 'teams', id));
         } catch (error) {
