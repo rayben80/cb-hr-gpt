@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('조직 관리 페이지', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         await page.getByRole('link', { name: '조직 관리' }).click();
         await expect(page.getByRole('heading', { name: '조직 관리' })).toBeVisible();
     });
@@ -33,7 +33,7 @@ test.describe('조직 관리 페이지', () => {
 
 test.describe('대시보드 페이지', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         await page.getByRole('link', { name: '성과 대시보드' }).click();
         await expect(page.getByRole('heading', { name: '성과 대시보드' })).toBeVisible();
     });
@@ -50,7 +50,7 @@ test.describe('대시보드 페이지', () => {
 
 test.describe('평가 관리 페이지', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         await page.getByRole('link', { name: '평가 관리' }).click();
     });
 
@@ -69,7 +69,7 @@ test.describe('평가 관리 페이지', () => {
 
 test.describe('접근성', () => {
     test('메인 페이지에 주요 랜드마크가 있어야 한다', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
 
         // main 또는 역할이 있는 컨테이너 확인
         const mainContent = page.locator('main, [role="main"]');
@@ -80,7 +80,7 @@ test.describe('접근성', () => {
     });
 
     test('포커스가 키보드로 이동 가능해야 한다', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
 
         // Tab 키로 포커스 이동
         await page.keyboard.press('Tab');

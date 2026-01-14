@@ -1,6 +1,6 @@
 import { User, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc, type DocumentSnapshot } from 'firebase/firestore';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { auth, db, googleProvider } from '../firebase';
 
 const ALLOWED_EMAIL_DOMAIN = '@forcs.com';

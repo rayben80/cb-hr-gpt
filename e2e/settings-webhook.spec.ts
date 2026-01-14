@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('Webhook Settings', () => {
     test('should be read-only when webhook is provided by env', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         await page.getByRole('link', { name: '설정' }).click();
         await expect(page.getByRole('heading', { name: '설정' })).toBeVisible();
 

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('Member Role Select', () => {
     test('should restrict role choices to 팀장/파트장/팀원', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         await page.getByRole('link', { name: '조직 관리' }).click();
         await expect(page.getByRole('heading', { name: '조직 관리' })).toBeVisible();
 
