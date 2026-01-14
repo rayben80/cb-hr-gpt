@@ -50,6 +50,45 @@ const calculateCampaignPeriod = (today, durationDays) => {
     };
 };
 
+const normalizeRecurringType = (value) => {
+    if (typeof value !== 'string') return null;
+    const map = {
+        monthly: 'monthly',
+        quarterly: 'quarterly',
+        yearly: 'yearly',
+        월별: 'monthly',
+        분기별: 'quarterly',
+        연별: 'yearly',
+        연간: 'yearly',
+    };
+    return map[value] || null;
+};
+
+const parseKstDateString = (value) => {
+    if (!value) return null;
+    const parsed = new Date(`${value}T00:00:00+09:00`);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed;
+};
+
+const shouldRunRecurring = (type, startDate, currentYear, currentMonth) => {
+    if (!type || type === 'monthly') return true;
+    const baseDate = parseKstDateString(startDate);
+    if (!baseDate) return false;
+    const baseYear = baseDate.getFullYear();
+    const baseMonth = baseDate.getMonth() + 1;
+
+    if (type === 'quarterly') {
+        const currentIndex = currentYear * 12 + currentMonth;
+        const baseIndex = baseYear * 12 + baseMonth;
+        return (currentIndex - baseIndex) % 3 === 0;
+    }
+    if (type === 'yearly') {
+        return currentMonth === baseMonth;
+    }
+    return true;
+};
+
 async function runScheduler() {
     console.log('Starting Recurring Campaign Scheduler...');
 
@@ -63,21 +102,32 @@ async function runScheduler() {
     try {
         // 2. Query Recurring Campaigns
         const campaignsRef = db.collection('evaluation_campaigns');
-        const snapshot = await campaignsRef
-            .where('period.isRecurring', '==', true)
-            // Note: If 'period' is a map, we can query nested fields if indexed.
-            // If not indexed, we might need to fetch more and filter.
-            // Let's assume user structure: period: { isRecurring: true, recurringStartDay: 1 }
-            .get();
+        const snapshot = await campaignsRef.where('status', '==', 'ACTIVE').get();
 
         const recurringCampaigns = [];
         snapshot.forEach((doc) => {
             const data = doc.data();
-            // Check status and start day
-            // We loosely match recurringStartDay.
-            if (data.status === 'ACTIVE' && data.period?.recurringStartDay == currentDay) {
-                recurringCampaigns.push({ id: doc.id, ...data });
-            }
+            const recurringType = normalizeRecurringType(
+                data.recurringType ?? data.period?.recurringType ?? data.period
+            );
+            const isRecurring =
+                typeof data.isRecurring === 'boolean' ? data.isRecurring : Boolean(recurringType);
+            if (!isRecurring) return;
+
+            const startDayRaw = data.recurringStartDay ?? data.period?.recurringStartDay;
+            const startDay = typeof startDayRaw === 'number' ? startDayRaw : Number.parseInt(startDayRaw, 10);
+            if (!Number.isFinite(startDay) || startDay !== currentDay) return;
+
+            if (!shouldRunRecurring(recurringType, data.startDate, currentYear, currentMonth)) return;
+
+            recurringCampaigns.push({
+                id: doc.id,
+                ...data,
+                isRecurring,
+                recurringType,
+                recurringStartDay: startDay,
+                recurringDurationDays: data.recurringDurationDays ?? data.period?.recurringDurationDays,
+            });
         });
 
         console.log(`Found ${recurringCampaigns.length} active recurring campaigns for day ${currentDay}.`);
@@ -88,7 +138,7 @@ async function runScheduler() {
         for (const parentCampaign of recurringCampaigns) {
             console.log(`Processing campaign: ${parentCampaign.title}`);
 
-            const duration = parentCampaign.period?.recurringDurationDays || 14;
+            const duration = parentCampaign.recurringDurationDays || 14;
             // Recalculate end date based on specific campaign duration
             const specificPeriod = calculateCampaignPeriod(now, duration);
 
@@ -101,6 +151,8 @@ async function runScheduler() {
                 startDate: specificPeriod.startDateStr,
                 endDate: specificPeriod.endDateStr,
                 status: 'ACTIVE',
+                isRecurring: true,
+                recurringType: parentCampaign.recurringType,
                 createdAt: FieldValue.serverTimestamp(),
                 updatedAt: FieldValue.serverTimestamp(),
                 id: undefined,

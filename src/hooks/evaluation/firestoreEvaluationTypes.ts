@@ -6,6 +6,8 @@ export interface EvaluationCampaign {
     status: 'DRAFT' | 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
     type: string;
     period: string;
+    isRecurring?: boolean | undefined;
+    recurringType?: 'monthly' | 'quarterly' | 'yearly' | undefined;
     reportingCategory?: string | undefined;
     evaluationType?: EvaluationType | undefined;
     cycleKey?: string | undefined;

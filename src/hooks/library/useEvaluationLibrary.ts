@@ -132,18 +132,33 @@ export const useEvaluationLibrary = () => {
             });
 
             // 3. Create Campaign Object
+            const recurringType = draft.period.recurringType || 'monthly';
+            const recurringLabelMap: Record<typeof recurringType, string> = {
+                monthly: '월별',
+                quarterly: '분기별',
+                yearly: '연별',
+            };
+            const periodLabel = draft.period.isRecurring ? recurringLabelMap[recurringType] : '수시';
+            const recurringFields = draft.period.isRecurring
+                ? {
+                      isRecurring: true,
+                      recurringType,
+                      recurringStartDay: draft.period.recurringStartDay ?? 1,
+                      recurringDurationDays: draft.period.recurringDurationDays ?? 14,
+                  }
+                : { isRecurring: false };
+
             const campaignData: Omit<EvaluationCampaign, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'totalTargets'> =
                 {
                     title: draft.period.name,
                     type: draft.templateSnapshot.type,
-                    period: draft.period.isRecurring ? draft.period.recurringType || '월별' : '수시',
+                    period: periodLabel,
                     startDate: draft.period.startDate,
                     endDate: draft.period.endDate,
                     templateSnapshot: draft.templateSnapshot,
                     createdBy: user.uid,
                     weights: { firstHalf: 0, secondHalf: 0, peer: 0 },
-                    recurringStartDay: draft.period.recurringStartDay,
-                    recurringDurationDays: draft.period.recurringDurationDays,
+                    ...recurringFields,
                 };
 
             // 4. Submit
